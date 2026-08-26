@@ -4,6 +4,8 @@ using EventManagement.Models;
 using EventManagement.Services;
 using EventManagement.Services.Interfaces;
 using FluentValidation;
+using Microsoft.OpenApi;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseDefaultServiceProvider(options =>
@@ -15,12 +17,18 @@ builder.Host.UseDefaultServiceProvider(options =>
         options.ValidateScopes = true;
     }
 });
+// Add services to the container.
 // Толлько для минимальных API
 builder.Services.AddEndpointsApiExplorer();
 // Стандартизация ответов
 builder.Services.AddProblemDetails();
 
-// Add services to the container.
+builder.Services.AddSwaggerGen(opt =>
+{
+    opt.SwaggerDoc("v1", new OpenApiInfo { Title = "EventManagement API", Version = "v1" });
+    opt.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml"));
+    opt.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"{typeof(Event).Assembly.GetName().Name}.xml"));
+});
 
 builder.Services.AddControllers()
 .ConfigureApiBehaviorOptions(options =>
@@ -41,6 +49,8 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 
+app.UseSwagger();
+app.UseSwaggerUI();
 
 if (!app.Environment.IsDevelopment())
 {
