@@ -1,5 +1,6 @@
 using EventManagement.Context;
 using EventManagement.Context.Interfaces;
+using EventManagement.Filters;
 using EventManagement.Models;
 using EventManagement.Services;
 using EventManagement.Services.Interfaces;
@@ -30,8 +31,12 @@ builder.Services.AddSwaggerGen(opt =>
     opt.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"{typeof(Event).Assembly.GetName().Name}.xml"));
 });
 
-builder.Services.AddControllers()
-.ConfigureApiBehaviorOptions(options =>
+builder.Services.AddControllers(options =>
+{
+    ///Глобально подклбчаем фильтр 
+    options.Filters.Add<BusinessExceptionFilter>();
+})
+    .ConfigureApiBehaviorOptions(options =>
 {
     //Отключаем стандартную проверку валидации модели
     options.SuppressModelStateInvalidFilter = true;
