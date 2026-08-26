@@ -1,6 +1,8 @@
 using EventManagement.Context;
 using EventManagement.Context.Interfaces;
 using EventManagement.Models;
+using EventManagement.Services;
+using EventManagement.Services.Interfaces;
 using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,6 +34,7 @@ builder.Services.AddControllers()
 #warning Для данных в памяти используем Singleton(для многопоточного доступа в InMemoryEvents используется System/Threading.Lock, однако для других реализаций будем использовать Scoped
 builder.Services.AddSingleton<IRepository<Event>, InMemoryEvents>();
 builder.Services.AddTransient<IValidator<CreateUpdateEventDTO>, CreateUpdateEventDTOValidation>();
+builder.Services.AddScoped<IEventService, EventService>();
 
 
 var app = builder.Build();

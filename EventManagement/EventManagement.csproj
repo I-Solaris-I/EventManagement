@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\EventManagement.Context\EventManagement.Context.csproj" />
     <ProjectReference Include="..\EventManagement.Models\EventManagement.Models.csproj" />
+    <ProjectReference Include="..\EventManagement.Services\EventManagement.Services.csproj" />
   </ItemGroup>
 
 </Project>
