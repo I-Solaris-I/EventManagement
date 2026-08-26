@@ -25,8 +25,8 @@ namespace EventManagement.Context
                 var startAt = f.Date.Between(DateTime.Now.AddDays(-365), DateTime.Now.AddDays(365));
                 var endAt = startAt.AddHours(f.Random.Int(1, 24));
                 return new Event(Guid.NewGuid(), f.Lorem.Sentence(), startAt, endAt, f.Random.Number(0, 100) > 30 ? f.Lorem.Paragraph() : null);
-                });
-                
+            });
+
             _events = test_data.UseSeed(8675309).Generate(100).OrderBy(u => u.StartAt).ToList();
 
         }
@@ -34,7 +34,7 @@ namespace EventManagement.Context
         {
             using (_lock.EnterScope())
             {
-                _events.Add(new Event(data.Title, data.StartAt, data.EndAt, data.Description));
+                _events.Add(data);
             }
 
         }
@@ -45,8 +45,8 @@ namespace EventManagement.Context
                 var eventItem = _events.FirstOrDefault(e => e.Id == data.Id);
                 if (eventItem != null)
                 {
-                    eventItem.UpdateEvent(data.Title, data.StartAt, data.EndAt, data.Description);
-
+                    _events.Remove(eventItem);
+                    _events.Add(data);
                 }
             }
         }

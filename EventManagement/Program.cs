@@ -38,8 +38,7 @@ builder.Services.AddControllers(options =>
 })
     .ConfigureApiBehaviorOptions(options =>
 {
-    //Отключаем стандартную проверку валидации модели
-    options.SuppressModelStateInvalidFilter = true;
+    options.SuppressModelStateInvalidFilter = false;
 });
 
 

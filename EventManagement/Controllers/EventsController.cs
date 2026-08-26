@@ -16,6 +16,7 @@ namespace EventManagement.Controllers
         /// Конструктор
         /// </summary>
         /// <param name="eventService"></param>
+        /// <param name="logger"></param>
         public EventsController(IEventService eventService, ILogger<EventsController> logger)
         {
             _eventService = eventService;
@@ -25,6 +26,8 @@ namespace EventManagement.Controllers
         /// Получить мероприятия
         /// </summary>
         /// <returns></returns>
+        /// <response code="204">Мероприятий не найдены</response>
+        /// <response code="200">Возвращается список мероприятий</response>
         [HttpGet]
         public ActionResult<IEnumerable<EventDTO>> GetEvents()
         {
@@ -40,6 +43,8 @@ namespace EventManagement.Controllers
         /// </summary>
         /// <param name="id">id мероприятие</param>
         /// <returns></returns>
+        /// <response code="200">Мероприятие удалено</response>
+
         [HttpGet("{id}")]
         public ActionResult<EventDTO> GetEventById([FromRoute][Required] Guid id)
         {
@@ -52,6 +57,8 @@ namespace EventManagement.Controllers
         /// <param name="model">модель данных мероприятия для изменения</param>
         /// <param name="id">id мероприятие</param>
         /// <returns></returns>
+        /// <response code="204">Мероприятие удалено</response>
+        /// <response code="404">Мероприятие не найдено</response>
         [HttpPut("{id}")]
         public ActionResult UpdateEvent([FromBody][Required] CreateUpdateEventDTO model, [FromRoute][Required] Guid id)
         {
@@ -63,16 +70,20 @@ namespace EventManagement.Controllers
         /// </summary>
         /// <param name="model">модель данных мероприятия для создания</param>
         /// <returns></returns>
+        /// <response code="201">Мероприятие создано</response>
         [HttpPost]
-        public ActionResult AddEvent([FromBody][Required] CreateUpdateEventDTO model)
+        public ActionResult<Guid> AddEvent([FromBody][Required] CreateUpdateEventDTO model)
         {
             return CreatedAtAction(nameof(AddEvent), _eventService.CreateEvent(model));
         }
         /// <summary>
-        /// Удалить пероприятие 
+        /// Удалить мероприятие 
         /// </summary>
         /// <param name="id">id мероприятие</param>
         /// <returns></returns>
+        /// <response code="404">Мероприятие не найдено</response>
+        /// <response code="204">Мероприятие удалено</response>
+
         [HttpDelete("{id}")]
         public ActionResult RemoveEvent([FromRoute][Required] Guid id)
         {
