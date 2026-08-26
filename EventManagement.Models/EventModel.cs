@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FluentValidation;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -105,4 +106,30 @@ namespace EventManagement.Models
     /// <param name="EndAt"></param>
     /// <param name="Description"></param>
     public record CreateUpdateEventDTO(string Title, DateTime StartAt, DateTime EndAt, string? Description = null);
+    /// <summary>
+    /// Правила валидации
+    /// </summary>
+    public class CreateUpdateEventDTOValidation : AbstractValidator<CreateUpdateEventDTO>
+    {
+        /// <summary>
+        /// Конмтруктор
+        /// </summary>
+        public CreateUpdateEventDTOValidation()
+        {
+            RuleFor(x => x.Title)
+                .NotEmpty()
+                .NotNull()
+                .WithMessage("Название мероприятия не может быть пустым");
+            RuleFor(x => x.StartAt)
+               .NotNull()
+               .WithMessage("Не указана дата начала мероприятия");
+            RuleFor(x => x.EndAt)
+               .NotNull()
+               .WithMessage("Не указана дата окончания мероприятия");
+            RuleFor(x => x.EndAt)
+                .GreaterThan(x => x.StartAt)
+                .WithMessage((x) => $"Дата окончания мероприятия {x.EndAt} должна быть больше даты начала мероприяти {x.StartAt}");
+        }
+
+    }
 }
