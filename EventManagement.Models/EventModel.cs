@@ -6,7 +6,15 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace EventManagement.Models
-{
+{   
+    /// <summary>
+    /// Исключение для отстутствующего мероприятия
+    /// </summary>
+    public class EventNotFoundedExeption : Exception
+    {
+        public EventNotFoundedExeption(Guid Id) : base($"Мероприятие c {Id} не найдено") { }
+        public EventNotFoundedExeption(string message) : base(message) { }
+    }
     /// <summary>
     /// Мероприятие (Доменная модель)
     /// </summary>
