@@ -63,7 +63,7 @@ namespace EventManagement.Context
         {
             using (_lock.EnterScope())
             {
-                return _events;
+                return _events.ToList();
             }
         }
 

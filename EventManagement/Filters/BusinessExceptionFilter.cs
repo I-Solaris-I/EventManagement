@@ -1,5 +1,6 @@
 ﻿using EventManagement.Models;
 using FluentValidation;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
@@ -30,6 +31,7 @@ namespace EventManagement.Filters
                 {
                     StatusCode = StatusCodes.Status404NotFound,
                 };
+                context.ExceptionHandled = true;
             }
             if (context.Exception is ValidationException dt)
             {
@@ -48,8 +50,10 @@ namespace EventManagement.Filters
                 {
                     StatusCode = StatusCodes.Status400BadRequest,
                 };
+                context.ExceptionHandled = true;
 
             }
+
 
 
         }
