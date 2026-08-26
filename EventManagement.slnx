@@ -1,3 +1,6 @@
 <Solution>
+  <Project Path="EventManagement.Context/EventManagement.Context.csproj" />
+  <Project Path="EventManagement.Models/EventManagement.Models.csproj" />
+  <Project Path="EventManagement.Services/EventManagement.Services.csproj" />
   <Project Path="EventManagement/EventManagement.csproj" />
 </Solution>
