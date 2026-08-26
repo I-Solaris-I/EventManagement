@@ -33,7 +33,7 @@ builder.Services.AddSwaggerGen(opt =>
 
 builder.Services.AddControllers(options =>
 {
-    ///Глобально подклбчаем фильтр 
+    //Глобально подклбчаем фильтр 
     options.Filters.Add<BusinessExceptionFilter>();
 })
     .ConfigureApiBehaviorOptions(options =>
@@ -66,5 +66,8 @@ app.MapControllers();
 
 app.Run();
 // Не удалять! Без этого тесты не будут работать корректно
+/// <summary>
+/// Program
+/// </summary>
 public partial class Program { }
 

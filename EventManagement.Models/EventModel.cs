@@ -12,7 +12,15 @@ namespace EventManagement.Models
     /// </summary>
     public class EventNotFoundedExeption : Exception
     {
+        /// <summary>
+        /// Конструктор
+        /// </summary>
+        /// <param name="Id"></param>
         public EventNotFoundedExeption(Guid Id) : base($"Мероприятие c {Id} не найдено") { }
+        /// <summary>
+        /// Констрктор
+        /// </summary>
+        /// <param name="message"></param>
         public EventNotFoundedExeption(string message) : base(message) { }
     }
     /// <summary>
@@ -40,7 +48,14 @@ namespace EventManagement.Models
         /// Дата окончания
         /// </summary>
         public DateTime EndAt { get; private set; }
-
+        /// <summary>
+        /// Контрутор Мероприятия
+        /// </summary>
+        /// <param name="id">Идентификатор</param>
+        /// <param name="title">Наименование</param>
+        /// <param name="startAt">Дата начала</param>
+        /// <param name="endAt">Дата конца</param>
+        /// <param name="description">Описание</param>
         public Event(Guid id, string title, DateTime startAt, DateTime endAt, string? description = null) : this(title, startAt, endAt, description)
         {
             Id = id;
@@ -51,8 +66,8 @@ namespace EventManagement.Models
         /// </summary>
         /// <param name="title">Наименование</param>
         /// <param name="startAt">Дата начала</param>
-        /// <param name="endAt"></param>
-        /// <param name="description"></param>
+        /// <param name="endAt">Дата конца</param>
+        /// <param name="description">Описание</param>
         /// <exception cref="ArgumentException"></exception>
         public Event(string title, DateTime startAt, DateTime endAt, string? description = null)
         {

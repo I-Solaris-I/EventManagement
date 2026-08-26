@@ -5,6 +5,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EventManagement.Controllers
 {
+    /// <summary>
+    /// Контроллер мероприятий
+    /// </summary>
     [ApiController]
     [Route("[controller]")]
     public class EventsController : ControllerBase
