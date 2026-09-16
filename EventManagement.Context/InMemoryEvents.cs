@@ -27,7 +27,7 @@ namespace EventManagement.Context
                 return new Event(Guid.NewGuid(), f.Lorem.Sentence(), startAt, endAt, f.Random.Number(0, 100) > 30 ? f.Lorem.Paragraph() : null);
             });
 
-            _events = test_data.UseSeed(8675309).Generate(100).OrderBy(u => u.StartAt).ToList();
+            _events = test_data.UseSeed(8675309).Generate(100).OrderByDescending(u => u.EndAt).ToList();
 
         }
         public void Create(Event data)
