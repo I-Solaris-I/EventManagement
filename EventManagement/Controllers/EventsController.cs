@@ -29,12 +29,18 @@ namespace EventManagement.Controllers
         /// <summary>
         /// Получить мероприятия
         /// </summary>
+        /// <param name="title"></param>
+        /// <param name="from"></param>
+        /// <param name="to"></param>
+        /// <param name="page"></param>
+        /// <param name="pageSize"></param>
         /// <returns></returns>
         /// <response code="200">Возвращается список мероприятий</response>
+
         [HttpGet]
-        public ActionResult<IEnumerable<EventDTO>> GetEvents()
+        public ActionResult<PaginatedResultDto<EventDTO>> GetEvents([FromQuery] string? title, [FromQuery] DateTime? from, [FromQuery] DateTime? to, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            return (_eventService.GetAllEvents());
+            return _eventService.GetFilteredEvents(new EventFilterDTO(title, from, to, page, pageSize));
         }
         /// <summary>
         /// Получить мероприятие по id

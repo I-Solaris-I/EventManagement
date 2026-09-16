@@ -13,15 +13,37 @@ namespace EventManagement.Models
     public class EventNotFoundedExeption : Exception
     {
         /// <summary>
+        /// Идентифкатор ненайденного мероприятия
+        /// </summary>
+        public Guid EventId { get; private set; }
+        /// <summary>
         /// Конструктор
         /// </summary>
-        /// <param name="Id"></param>
-        public EventNotFoundedExeption(Guid Id) : base($"Мероприятие c {Id} не найдено") { }
+        /// <param name="Id">Идентификатор ненайденного мероприятия</param>
+        public EventNotFoundedExeption(Guid Id) : base($"Мероприятие c Id={Id} не найдено")
+        {
+            EventId = Id;
+        }
         /// <summary>
-        /// Констрктор
+        /// Конструктор
         /// </summary>
-        /// <param name="message"></param>
-        public EventNotFoundedExeption(string message) : base(message) { }
+        /// <param name="Id">Идентификатор ненайденного мероприятия</param>
+        /// <param name="message">Сообщение</param>
+        public EventNotFoundedExeption(Guid Id, string? message) : base(message)
+        {
+            EventId = Id;
+        }
+        /// <summary>
+        ///  Конструктор
+        /// </summary>
+        /// <param name="Id">Идентификатор ненайденного мероприятия</param>
+        /// <param name="message">Сообщение</param>
+        /// <param name="innerException">Вложенное исключение</param>
+        public EventNotFoundedExeption(Guid Id, string? message, Exception? innerException) : base(message, innerException)
+        {
+            EventId = Id;
+        }
+
     }
     /// <summary>
     /// Мероприятие (Доменная модель)
@@ -96,61 +118,5 @@ namespace EventManagement.Models
             StartAt = startAt;
             EndAt = endAt;
         }
-    }
-
-
-    /// <summary>
-    /// Модель для выдачи клиенту
-    /// </summary>
-    /// <param name="Id"></param>
-    /// <param name="Title"></param>
-    /// <param name="StartAt"></param>
-    /// <param name="EndAt"></param>
-    /// <param name="Description"></param>
-    public record EventDTO(Guid Id, string Title, DateTime StartAt, DateTime EndAt, string? Description = null)
-    {
-        /// <summary>
-        /// Получение модели представления из доменной модели
-        /// </summary>
-        /// <param name="e"></param>
-        /// <returns></returns>
-        public static EventDTO GetModel(Event e)
-        {
-            return new EventDTO(e.Id, e.Title, e.StartAt, e.EndAt, e.Description);
-        }
-    }
-
-
-    /// <summary>
-    /// DTO модель для создаваемого мероприятия
-    /// </summary>
-    /// <param name="Title"></param>
-    /// <param name="StartAt"></param>
-    /// <param name="EndAt"></param>
-    /// <param name="Description"></param>
-    public record CreateUpdateEventDTO(string Title, DateTime StartAt, DateTime EndAt, string? Description = null);
-    /// <summary>
-    /// Правила валидации
-    /// </summary>
-    public class CreateUpdateEventDTOValidation : AbstractValidator<CreateUpdateEventDTO>
-    {
-        /// <summary>
-        /// Конмтруктор
-        /// </summary>
-        public CreateUpdateEventDTOValidation()
-        {
-            RuleFor(x => x.Title)
-                .NotEmpty()
-                .NotNull()
-                .WithMessage("Название мероприятия не может быть пустым");
-            RuleFor(x => x.StartAt)
-                .NotEmpty()
-               .WithMessage("Не указана дата начала мероприятия");
-            RuleFor(x => x.EndAt)
-               .NotEmpty()
-               .WithMessage("Не указана дата окончания мероприятия");
-            RuleFor(x => x.EndAt).GreaterThan(x => x.StartAt).WithMessage((x) => $"Дата окончания мероприятия {x.EndAt} должна быть больше даты начала мероприяти {x.StartAt}");
-        }
-
     }
 }

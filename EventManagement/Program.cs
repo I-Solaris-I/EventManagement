@@ -1,6 +1,7 @@
 using EventManagement.Context;
 using EventManagement.Context.Interfaces;
 using EventManagement.Filters;
+using EventManagement.Middlewares;
 using EventManagement.Models;
 using EventManagement.Services;
 using EventManagement.Services.Interfaces;
@@ -33,7 +34,7 @@ builder.Services.AddSwaggerGen(opt =>
 
 builder.Services.AddControllers(options =>
 {
-    //Глобально подклбчаем фильтр 
+    //Глобально подключаем фильтр бизнес-исключений
     options.Filters.Add<BusinessExceptionFilter>();
 })
     .ConfigureApiBehaviorOptions(options =>
@@ -46,9 +47,10 @@ builder.Services.AddControllers(options =>
 //TODO: Для данных в памяти используем Singleton(для многопоточного доступа в InMemoryEvents используется System/Threading.Lock, однако для других реализаций будем использовать Scoped
 builder.Services.AddSingleton<IRepository<Event>, InMemoryEvents>();
 builder.Services.AddTransient<IValidator<CreateUpdateEventDTO>, CreateUpdateEventDTOValidation>();
+builder.Services.AddTransient<IValidator<EventFilterDTO>, EventFilterDTOValidation>();
 builder.Services.AddScoped<IEventService, EventService>();
 
-
+ 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -56,6 +58,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
+app.UseGlobalExceptionHandling();
 if (!app.Environment.IsDevelopment())
 {
     app.UseStatusCodePages();

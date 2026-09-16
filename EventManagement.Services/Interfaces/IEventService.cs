@@ -23,12 +23,23 @@ namespace EventManagement.Services.Interfaces
         /// </summary>
         /// <param name="id"></param>
         /// <param name="model"></param>
-        void UpdateEvent(Guid id,CreateUpdateEventDTO model);
+        void UpdateEvent(Guid id, CreateUpdateEventDTO model);
         /// <summary>
         /// Получение всех мероприятий
         /// </summary>
         /// <returns></returns>
         List<EventDTO> GetAllEvents();
+        /// <summary>
+        /// Получить эвенты с фильрацией и пагинацией
+        /// </summary>
+        /// <param name="title"></param>
+        /// <param name="from"></param>
+        /// <param name="to"></param>
+        /// <param name="page"></param>
+        /// <param name="pageSize"></param>
+        /// <returns></returns>
+        PaginatedResultDto<EventDTO> GetFilteredEvents(EventFilterDTO model);
+
         /// <summary>
         /// Получение мероприятия по id
         /// </summary>
