@@ -2,5 +2,6 @@
   <Project Path="EventManagement.Context/EventManagement.Context.csproj" />
   <Project Path="EventManagement.Models/EventManagement.Models.csproj" />
   <Project Path="EventManagement.Services/EventManagement.Services.csproj" />
+  <Project Path="EventManagement.Tests/EventManagement.Tests.csproj" Id="e8f7d8f9-b77e-4c18-8dd1-e481d124bf1f" />
   <Project Path="EventManagement/EventManagement.csproj" />
 </Solution>
