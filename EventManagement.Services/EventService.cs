@@ -18,7 +18,9 @@ namespace EventManagement.Services
     {
 
         private IRepository<Event> _repository;
-        private IValidator<CreateUpdateEventDTO> _validator;
+        private IValidator<EventFilterDTO> _validatorEF;
+        private IValidator<CreateUpdateEventDTO> _validatorCUE;
+
         private readonly ILogger<EventService> _logger;
 
         /// <summary>
@@ -26,10 +28,16 @@ namespace EventManagement.Services
         /// </summary>
         /// <param name="repository"></param>
         /// <param name="validator"></param>
-        public EventService(IRepository<Event> repository, IValidator<CreateUpdateEventDTO> validator, ILogger<EventService> logger)
+        public EventService(IRepository<Event> repository,
+
+             ILogger<EventService> logger,
+             IValidator<CreateUpdateEventDTO> validatorCUE,
+            IValidator<EventFilterDTO> validatorEF)
         {
             _repository = repository;
-            _validator = validator;
+            _validatorCUE = validatorCUE;
+            _validatorEF = validatorEF;
+
             _logger = logger;
         }
         /// <summary>
@@ -40,8 +48,9 @@ namespace EventManagement.Services
         /// <exception cref="ValidationException"></exception>
         public Guid CreateEvent(CreateUpdateEventDTO model)
         {
+            if (model == null) throw new ArgumentNullException(nameof(model));
             _logger.LogInformation($"Вызван метод {nameof(CreateEvent)}");
-            var result = _validator.Validate(model);
+            var result = _validatorCUE.Validate(model);
             if (!result.IsValid) throw new ValidationException(result.Errors);
             var newEvent = new Event(model.Title, model.StartAt, model.EndAt, model.Description);
             _repository.Create(newEvent);
@@ -60,8 +69,9 @@ namespace EventManagement.Services
             _logger.LogInformation($"Вызван метод {nameof(UpdateEvent)}");
 
             if (!_repository.IsExist(id)) throw new EventNotFoundedExeption(id);
+            if (model == null) throw new ArgumentNullException(nameof(model));
 
-            var result = _validator.Validate(model);
+            var result = _validatorCUE.Validate(model);
             if (!result.IsValid) throw new ValidationException(result.Errors);
 
             if (!_repository.IsExist(id)) throw new EventNotFoundedExeption(id);
@@ -85,6 +95,82 @@ namespace EventManagement.Services
             _logger.LogInformation($"Мероприятия выгружены");
             return events;
         }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="title"></param>
+        /// <param name="from"></param>
+        /// <param name="to"></param>
+        /// <param name="page"></param>
+        /// <param name="pageSize"></param>
+        /// <returns></returns>
+        /// <exception cref="ValidationException"></exception>
+        public PaginatedResultDto<EventDTO> GetFilteredEvents(EventFilterDTO model)
+        {
+            if (model == null) throw new ArgumentNullException(nameof(model));
+            var result = _validatorEF.Validate(model);
+            if (!result.IsValid) throw new ValidationException(result.Errors);
+
+            DateTime _from = DateTime.MinValue;
+            string _title = string.Empty;
+            DateTime _to = DateTime.MinValue;
+            bool hasTitleFiltration = false, hasFromFiltration = false, hasToFiltration = false;
+
+
+
+            if (!string.IsNullOrEmpty(model.Title))
+            {
+                _title = model.Title;
+                hasTitleFiltration = true;
+            }
+            if (model.From.HasValue)
+            {
+                _from = model.From!.Value.ToUniversalTime();
+                hasFromFiltration = true;
+            }
+            if (model.To.HasValue)
+            {
+                _to = model.To!.Value.ToUniversalTime();
+                hasToFiltration = true;
+            }
+
+            _logger.LogInformation($"Вызван метод {nameof(GetFilteredEvents)}");
+            var query = _repository.GetAll();
+
+            if (hasFromFiltration)
+            {
+                query = query.Where(a => a.StartAt >= _from);
+            }
+            if (hasToFiltration)
+            {
+                query = query.Where(a => a.EndAt <= _to);
+            }
+            if (hasTitleFiltration)
+            {
+                query = query.Where(a => a.Title.Contains(_title, StringComparison.InvariantCultureIgnoreCase));
+            }
+            query.OrderBy(a => a.StartAt);
+
+
+            var total = query.Count();
+
+            query = query.Skip((model.Page - 1) * model.PageSize).Take(model.PageSize);
+
+            var events = query.Select(EventDTO.GetModel).ToList();
+
+            _logger.LogInformation($"Мероприятия выгружены");
+            return new PaginatedResultDto<EventDTO>()
+            {
+                Items = events,
+                PageSize = model.PageSize,
+                Page = model.Page,
+                Total = total,
+            };
+        }
+
+
         /// <summary>
         /// Получить мероприятие по ID
         /// </summary>
