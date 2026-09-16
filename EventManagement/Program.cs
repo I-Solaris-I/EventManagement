@@ -1,6 +1,7 @@
 using EventManagement.Context;
 using EventManagement.Context.Interfaces;
 using EventManagement.Filters;
+using EventManagement.Middlewares;
 using EventManagement.Models;
 using EventManagement.Services;
 using EventManagement.Services.Interfaces;
@@ -33,7 +34,7 @@ builder.Services.AddSwaggerGen(opt =>
 
 builder.Services.AddControllers(options =>
 {
-    //Глобально подклбчаем фильтр 
+    //Глобально подключаем фильтр бизнес-исключений
     options.Filters.Add<BusinessExceptionFilter>();
 })
     .ConfigureApiBehaviorOptions(options =>
@@ -56,6 +57,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
+app.UseGlobalExceptionHandling();
 if (!app.Environment.IsDevelopment())
 {
     app.UseStatusCodePages();

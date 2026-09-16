@@ -13,15 +13,37 @@ namespace EventManagement.Models
     public class EventNotFoundedExeption : Exception
     {
         /// <summary>
+        /// Идентифкатор ненайденного мероприятия
+        /// </summary>
+        public Guid EventId { get; private set; }
+        /// <summary>
         /// Конструктор
         /// </summary>
-        /// <param name="Id"></param>
-        public EventNotFoundedExeption(Guid Id) : base($"Мероприятие c {Id} не найдено") { }
+        /// <param name="Id">Идентификатор ненайденного мероприятия</param>
+        public EventNotFoundedExeption(Guid Id) : base($"Мероприятие c Id={Id} не найдено")
+        {
+            EventId = Id;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Id">Идентификатор ненайденного мероприятия</param>
+        /// <param name="message">Сообщение</param>
+        public EventNotFoundedExeption(Guid Id, string? message) : base(message)
+        {
+            EventId = Id;
+        }
         /// <summary>
         /// Констрктор
         /// </summary>
-        /// <param name="message"></param>
-        public EventNotFoundedExeption(string message) : base(message) { }
+        /// <param name="Id">Идентификатор ненайденного мероприятия</param>
+        /// <param name="message">Сообщение</param>
+        /// <param name="innerException">Вложенное исключение</param>
+        public EventNotFoundedExeption(Guid Id, string? message, Exception? innerException) : base(message, innerException)
+        {
+            EventId = Id;
+        }
+
     }
     /// <summary>
     /// Мероприятие (Доменная модель)
