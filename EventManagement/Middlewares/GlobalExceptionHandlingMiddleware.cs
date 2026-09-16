@@ -32,6 +32,7 @@ namespace EventManagement.Middlewares
         /// </summary>
         /// <param name="next">Делегат следующего элемента в цепочке конвейера</param>
         /// <param name="logger">Логгер</param>
+        /// <param name="problemDetailsFactory">Фабрика problemDetails</param>
         public GlobalExceptionHandlingMiddleware(RequestDelegate next, ILogger<GlobalExceptionHandlingMiddleware> logger, ProblemDetailsFactory problemDetailsFactory)
         {
             _next = next;
@@ -48,7 +49,7 @@ namespace EventManagement.Middlewares
         {
             try
             {
-                ///Вызов следующего элемента в цепочке конвейера
+                //Вызов следующего элемента в цепочке конвейера
                 await _next(context);
             }
             catch (Exception ex)
