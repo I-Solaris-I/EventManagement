@@ -59,7 +59,7 @@ namespace EventManagement.Filters
 
                 context.Result = new ObjectResult(problemDetails)
                 {
-                    StatusCode = StatusCodes.Status404NotFound,
+                    StatusCode = StatusCodes.Status400BadRequest,
                 };
                 context.ExceptionHandled = true;
             }

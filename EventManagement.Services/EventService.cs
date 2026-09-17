@@ -151,8 +151,6 @@ namespace EventManagement.Services
             {
                 query = query.Where(a => a.Title.Contains(_title, StringComparison.InvariantCultureIgnoreCase));
             }
-            query.OrderBy(a => a.StartAt);
-
 
             var total = query.Count();
 
