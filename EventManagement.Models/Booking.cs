@@ -6,7 +6,72 @@ using System.Threading.Tasks;
 
 namespace EventManagement.Models
 {
+    /// <summary>
+    /// Исключение для отстутствующей брони мероприятия
+    /// </summary>
+    public class BookingNotFoundedException : Exception
+    {
+        /// <summary>
+        /// Идентификатор ненайденной брони мероприятия
+        /// </summary>
+        public Guid BookingId { get; private set; }
+        /// <summary>
+        /// Конструктор
+        /// </summary>
+        /// <param name="Id">Идентификатор ненайденной брони мероприятия</param>
+        public BookingNotFoundedException(Guid Id) : base($"Бронь с Id={Id} не найдена")
+        {
+            BookingId = Id;
+        }
+        /// <summary>
+        /// Конструктор
+        /// </summary>
+        /// <param name="Id">Идентификатор ненайденной брони мероприятия</param>
+        /// <param name="message">Сообщение</param>
+        public BookingNotFoundedException(Guid Id, string? message) : base(message)
+        {
+            BookingId = Id;
+        }
+        /// <summary>
+        /// Конструктор
+        /// </summary>
+        /// <param name="Id">Идентификатор ненайденной брони мероприятия</param>
+        /// <param name="message">Сообщение</param>
+        /// <param name="innerException">Вложенное исключение</param>
+        public BookingNotFoundedException(Guid Id, string? message, Exception? innerException) : base(message, innerException)
+        {
+            BookingId = Id;
+        }
+    }
 
+    /// <summary>
+    /// Бизнес-исключение для брони
+    /// </summary>
+    public class BookingBusinessException : Exception
+    {
+        /// <summary>
+        /// Конструктор
+        /// </summary>
+        public BookingBusinessException() : base("Неизвестная ошибка")
+        {
+        }
+        /// <summary>
+        /// Конструктор
+        /// </summary>
+        /// <param name="message">Сообщение</param>
+        public BookingBusinessException(string? message) : base(message)
+        {
+
+        }
+        /// <summary>
+        /// Конструктор
+        /// </summary>
+        /// <param name="message">Сообщение</param>
+        /// <param name="innerException">Вложенное исключение</param>
+        public BookingBusinessException(string? message, Exception? innerException) : base(message, innerException)
+        {
+        }
+    }
     /// <summary>
     /// Бронь мероприятия
     /// </summary>
