@@ -15,16 +15,18 @@ namespace EventManagement.Controllers
     public class EventsController : ControllerBase
     {
         private readonly ILogger<EventsController> _logger;
-
         private readonly IEventService _eventService;
+        private readonly IBookingService _bookingService;
         /// <summary>
         /// Конструктор
         /// </summary>
         /// <param name="eventService">Репозиторий мероприятий</param>
-        /// <param name="logger"></param>
+        /// <param name="bookingService">Репозиторий бронкй</param>
         /// <param name="logger">логгер</param>
+        public EventsController(IEventService eventService, IBookingService bookingService, ILogger<EventsController> logger)
         {
             _eventService = eventService;
+            _bookingService = bookingService;
             _logger = logger;
         }
         /// <summary>
@@ -56,6 +58,20 @@ namespace EventManagement.Controllers
             return Ok(_eventService.GetEventById(id));
 
         }
+        /// <summary>
+        /// Создать бронь мероприятия
+        /// </summary>
+        /// <param name="id">Идентификатор мероприятия</param>
+        /// <returns></returns>
+        /// <response code="200">Бронь создана, ожидает обработки</response>
+        [HttpPost("{id}/book")]
+        public async Task<ActionResult<BookingDTO>> CreateBooking([FromRoute] Guid id)
+        {
+            var booking = await _bookingService.CreateBookingAsync(id);
+            return AcceptedAtAction(nameof(BookingsController.GetBooking), nameof(BookingsController).Replace("controller", "", StringComparison.InvariantCultureIgnoreCase),new {id=booking.Id}, booking);
+        }
+
+
         /// <summary>
         /// Обновить мероприятие
         /// </summary>
