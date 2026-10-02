@@ -377,5 +377,28 @@ namespace EventManagement.Tests
             Assert.Throws<EventNotFoundedExсeption>(() => eventService.RemoveEvent(notExistedGuid));
             _repositoryMock.Verify(a => a.Delete(notExistedGuid), Times.Never);
         }
+
+
+        [Fact]
+        public void CreateEvent_InvalidDate_ShouldThrowValidationExeption()
+        {
+            //Arrange
+            var dto = new CreateUpdateEventDTO("Новое мероприятие", DateTime.MinValue, DateTime.Now);
+            var eventService = new EventService(_repositoryMock.Object, _loggerMock.Object,new CreateUpdateEventDTOValidation(), _validatorEFMock.Object);
+
+            //Act && Assert
+            Assert.Throws<ValidationException>(() => eventService.CreateEvent(dto));
+        }
+
+        [Fact]
+        public void UpdateEvent_InvalidDate_ShouldThrowValidationExeption()
+        {
+            //Arrange
+            var dto = new CreateUpdateEventDTO("Новое мероприятие", DateTime.Now, DateTime.Now.AddHours(-5));
+            var eventService = new EventService(_repositoryMock.Object, _loggerMock.Object, new CreateUpdateEventDTOValidation(), _validatorEFMock.Object);
+
+            //Act && Assert
+            Assert.Throws<ValidationException>(() => eventService.CreateEvent(dto));
+        }
     }
 }
