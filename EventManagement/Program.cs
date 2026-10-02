@@ -51,6 +51,7 @@ builder.Services.AddTransient<IValidator<EventFilterDTO>, EventFilterDTOValidati
 builder.Services.AddScoped<IEventService, EventService>();
 
  
+builder.Services.AddSingleton<IRepository<Booking>, InMemoryBooking>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
