@@ -34,13 +34,13 @@ namespace EventManagement.Filters
         {
             var httpContext = context.HttpContext;
           
-            if (context.Exception is EventNotFoundedExсeption nf)
+            if (context.Exception is EventNotFoundedExсeption enf)
             {
-                _logger.LogError(nf, "Event not founded exception, EventId={EventId},Method={Method}, Path={Path}",
-                    nf.EventId,
+                _logger.LogWarning(enf, "Event not founded exception, EventId={EventId}, Method={Method}, Path={Path}",
+                    enf.EventId,
                     httpContext.Request.Method,
                     httpContext.Request.Path);
-                var problemDetails = _problemDetailsFactory.CreateProblemDetails(httpContext, StatusCodes.Status404NotFound, "Not Found");
+                var problemDetails = _problemDetailsFactory.CreateProblemDetails(httpContext, StatusCodes.Status404NotFound, "Not Found", detail: enf.Message);
                 context.HttpContext.Response.ContentType = "application/problem+json";
 
                 context.Result = new ObjectResult(problemDetails)
@@ -49,9 +49,39 @@ namespace EventManagement.Filters
                 };
                 context.ExceptionHandled = true;
             }
+            if (context.Exception is BookingNotFoundedException bnf)
+            {
+                _logger.LogWarning(bnf, "Booking not founded exception, BookingId={BookingId}, Method={Method}, Path={Path}",
+                    bnf.BookingId,
+                    httpContext.Request.Method,
+                    httpContext.Request.Path);
+                var problemDetails = _problemDetailsFactory.CreateProblemDetails(httpContext, StatusCodes.Status404NotFound, "Not Found", detail: bnf.Message);
+                context.HttpContext.Response.ContentType = "application/problem+json";
+
+                context.Result = new ObjectResult(problemDetails)
+                {
+                    StatusCode = StatusCodes.Status404NotFound,
+                };
+                context.ExceptionHandled = true;
+            }
+            if (context.Exception is BookingBusinessException bbe)
+            {
+                _logger.LogWarning(bbe, "Booking Business Exception, Method={Method}, Path={Path}",
+                  httpContext.Request.Method,
+                 httpContext.Request.Path);
+                var problemDetails = _problemDetailsFactory.CreateProblemDetails(httpContext, StatusCodes.Status400BadRequest, "Booking operation is not allowed", detail: bbe.Message);
+                context.HttpContext.Response.ContentType = "application/problem+json";
+
+                context.Result = new ObjectResult(problemDetails)
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                };
+                context.ExceptionHandled = true;
+
+            }
             if (context.Exception is ArgumentNullException ane)
             {
-                _logger.LogError(ane, "Argument null exception, ParamName={ParamName}, Method={Method}, Path={Path}",
+                _logger.LogWarning(ane, "Argument null exception, ParamName={ParamName}, Method={Method}, Path={Path}",
                     ane.ParamName,
                     httpContext.Request.Method,
                     httpContext.Request.Path);
