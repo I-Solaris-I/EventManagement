@@ -50,9 +50,10 @@ builder.Services.AddTransient<IValidator<CreateUpdateEventDTO>, CreateUpdateEven
 builder.Services.AddTransient<IValidator<EventFilterDTO>, EventFilterDTOValidation>();
 builder.Services.AddScoped<IEventService, EventService>();
 
- 
+
 builder.Services.AddSingleton<IRepository<Booking>, InMemoryBooking>();
 builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddHostedService<BookingBackgroundService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
