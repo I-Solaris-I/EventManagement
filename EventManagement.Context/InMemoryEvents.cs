@@ -10,11 +10,17 @@ using System.Threading.Tasks;
 
 namespace EventManagement.Context
 {
+    /// <summary>
+    /// Репозиторий мероприятий
+    /// </summary>
     public class InMemoryEvents : IRepository<Event>
     {
         private readonly Lock _lock;
 
         private List<Event> _events;
+        /// <summary>
+        /// Конструктор
+        /// </summary>
         public InMemoryEvents()
         {
             _lock = new();
@@ -30,6 +36,10 @@ namespace EventManagement.Context
             _events = test_data.UseSeed(8675309).Generate(100).OrderByDescending(u => u.StartAt).ToList();
 
         }
+        /// <summary>
+        /// Создание мероприятия
+        /// </summary>
+        /// <param name="data">Данные для создания</param>
         public void Create(Event data)
         {
             using (_lock.EnterScope())
@@ -38,6 +48,10 @@ namespace EventManagement.Context
             }
 
         }
+        /// <summary>
+        /// Обновление мероприятия
+        /// </summary>
+        /// <param name="data">Данные для обновления</param>
         public void Update(Event data)
         {
             using (_lock.EnterScope())
@@ -50,7 +64,11 @@ namespace EventManagement.Context
                 }
             }
         }
-
+        /// <summary>
+        /// Проверить, существует ли мероприятие без его возврата
+        /// </summary>
+        /// <param name="id">Идентификатор мероприятия</param>
+        /// <returns></returns>
         public bool IsExist(Guid id)
         {
             using (_lock.EnterScope())
@@ -58,7 +76,10 @@ namespace EventManagement.Context
                 return _events.Any(a => a.Id == id);
             }
         }
-
+        /// <summary>
+        /// Получить все мероприятия
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<Event> GetAll()
         {
             using (_lock.EnterScope())
@@ -66,7 +87,11 @@ namespace EventManagement.Context
                 return _events.ToList();
             }
         }
-
+        /// <summary>
+        /// Получение мероприятия по идентификатору
+        /// </summary>
+        /// <param name="id">Идентификатор мероприятия</param>
+        /// <returns></returns>
         public Event? GetById(Guid id)
         {
             using (_lock.EnterScope())
@@ -75,7 +100,10 @@ namespace EventManagement.Context
             }
 
         }
-
+        /// <summary>
+        /// Удаление мероприятия
+        /// </summary>
+        /// <param name="id">Идентификатор мероприятия</param>
         public void Delete(Guid id)
         {
             using (_lock.EnterScope())

@@ -39,13 +39,12 @@ namespace EventManagement.Services.Interfaces
         /// <param name="pageSize"></param>
         /// <returns></returns>
         PaginatedResultDto<EventDTO> GetFilteredEvents(EventFilterDTO model);
-
         /// <summary>
         /// Получение мероприятия по id
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        EventDTO? GetEventById(Guid id);
+        EventDTO GetEventById(Guid id);
         /// <summary>
         /// Удаление мероприятия
         /// </summary>

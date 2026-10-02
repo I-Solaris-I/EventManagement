@@ -2,6 +2,9 @@
 using FluentValidation.TestHelper;
 namespace EventManagement.Tests
 {
+    /// <summary>
+    /// Тесты валидаторов
+    /// </summary>
     public class ValidatorTests
     {
         EventFilterDTOValidation validatorEF;

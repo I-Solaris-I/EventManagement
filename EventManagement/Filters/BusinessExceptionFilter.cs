@@ -33,7 +33,8 @@ namespace EventManagement.Filters
         public override void OnException(ExceptionContext context)
         {
             var httpContext = context.HttpContext;
-            if (context.Exception is EventNotFoundedExeption nf)
+          
+            if (context.Exception is EventNotFoundedExсeption nf)
             {
                 _logger.LogError(nf, "Event not founded exception, EventId={EventId},Method={Method}, Path={Path}",
                     nf.EventId,

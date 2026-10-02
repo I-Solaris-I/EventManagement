@@ -1,4 +1,5 @@
 using EventManagement.Models;
+using EventManagement.Services;
 using EventManagement.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -19,21 +20,21 @@ namespace EventManagement.Controllers
         /// <summary>
         /// Конструктор
         /// </summary>
-        /// <param name="eventService"></param>
+        /// <param name="eventService">Репозиторий мероприятий</param>
         /// <param name="logger"></param>
-        public EventsController(IEventService eventService, ILogger<EventsController> logger)
+        /// <param name="logger">логгер</param>
         {
             _eventService = eventService;
             _logger = logger;
         }
         /// <summary>
-        /// Получить мероприятия
+        /// Получить мероприятия с возможностью фильтрации и пагинации
         /// </summary>
-        /// <param name="title"></param>
-        /// <param name="from"></param>
-        /// <param name="to"></param>
-        /// <param name="page"></param>
-        /// <param name="pageSize"></param>
+        /// <param name="title">Наименование для фильтрации</param>
+        /// <param name="from">Дата с для фильтрации</param>
+        /// <param name="to">Дата по для фильтрации</param>
+        /// <param name="page">Номер страницы для выдачи данных</param>
+        /// <param name="pageSize">Кол-во элементов на странице</param>
         /// <returns></returns>
         /// <response code="200">Возвращается список мероприятий</response>
 
@@ -43,9 +44,9 @@ namespace EventManagement.Controllers
             return _eventService.GetFilteredEvents(new EventFilterDTO(title, from, to, page, pageSize));
         }
         /// <summary>
-        /// Получить мероприятие по id
+        /// Получить мероприятие по идентификатору
         /// </summary>
-        /// <param name="id">id мероприятие</param>
+        /// <param name="id">Идентификатор мероприятия</param>
         /// <returns></returns>
         /// <response code="200">Мероприятие получено</response>
 
@@ -58,8 +59,8 @@ namespace EventManagement.Controllers
         /// <summary>
         /// Обновить мероприятие
         /// </summary>
-        /// <param name="model">модель данных мероприятия для изменения</param>
-        /// <param name="id">id мероприятие</param>
+        /// <param name="model">Модель данных мероприятия для изменения</param>
+        /// <param name="id">Идентификатор мероприятия</param>
         /// <returns></returns>
         /// <response code="204">Мероприятие обновлено</response>
         /// <response code="404">Мероприятие не найдено</response>
@@ -72,20 +73,19 @@ namespace EventManagement.Controllers
         /// <summary>
         /// Создать мероприятие 
         /// </summary>
-        /// <param name="model">модель данных мероприятия для создания</param>
+        /// <param name="model">Модель данных мероприятия для создания</param>
         /// <returns></returns>
         /// <response code="201">Мероприятие создано</response>
         [HttpPost]
         public ActionResult<Guid> AddEvent([FromBody][Required] CreateUpdateEventDTO model)
         {
             var eventId = _eventService.CreateEvent(model);
-
             return CreatedAtAction(nameof(GetEventById), new { id = eventId }, eventId);
         }
         /// <summary>
         /// Удалить мероприятие 
         /// </summary>
-        /// <param name="id">id мероприятия</param>
+        /// <param name="id">Идентификатор мероприятия</param>
         /// <returns></returns>
         /// <response code="404">Мероприятие не найдено</response>
         /// <response code="204">Мероприятие удалено</response>

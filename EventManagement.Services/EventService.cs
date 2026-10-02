@@ -20,26 +20,25 @@ namespace EventManagement.Services
         private IRepository<Event> _repository;
         private IValidator<EventFilterDTO> _validatorEF;
         private IValidator<CreateUpdateEventDTO> _validatorCUE;
-
         private readonly ILogger<EventService> _logger;
 
         /// <summary>
         /// Конструктор сервиса
         /// </summary>
-        /// <param name="repository"></param>
-        /// <param name="validator"></param>
+        /// <param name="repository">Репозиторий мероприятий</param>
+        /// <param name="logger">Логгер</param>
+        /// <param name="validatorCUE">Валидатор DTO создания/обновления мероприятия</param>
+        /// <param name="validatorEF">Валидатор фильтра выдачи мероприятий</param>
         public EventService(IRepository<Event> repository,
-
-             ILogger<EventService> logger,
-             IValidator<CreateUpdateEventDTO> validatorCUE,
+            ILogger<EventService> logger,
+            IValidator<CreateUpdateEventDTO> validatorCUE,
             IValidator<EventFilterDTO> validatorEF)
-        {
-            _repository = repository;
-            _validatorCUE = validatorCUE;
-            _validatorEF = validatorEF;
-
-            _logger = logger;
-        }
+            {
+                _repository = repository;
+                _validatorCUE = validatorCUE;
+                _validatorEF = validatorEF;
+                _logger = logger;
+            }
         /// <summary>
         /// Создание мероприятия
         /// </summary>
@@ -62,27 +61,23 @@ namespace EventManagement.Services
         /// </summary>
         /// <param name="id">Идентификатор мероприятия</param>
         /// <param name="model">Модель обновления</param>
-        /// <exception cref="EventNotFoundedExeption"></exception>
+        /// <exception cref="EventNotFoundedExсeption"></exception>
         /// <exception cref="ValidationException"></exception>
         public void UpdateEvent(Guid id, CreateUpdateEventDTO model)
         {
             _logger.LogInformation($"Вызван метод {nameof(UpdateEvent)}");
 
-            if (!_repository.IsExist(id)) throw new EventNotFoundedExeption(id);
             if (model == null) throw new ArgumentNullException(nameof(model));
 
             var result = _validatorCUE.Validate(model);
             if (!result.IsValid) throw new ValidationException(result.Errors);
 
-            if (!_repository.IsExist(id)) throw new EventNotFoundedExeption(id);
+            var evt = _repository.GetById(id);
+            if (evt == null) throw new EventNotFoundedExсeption(id);
 
-            var _event = _repository.GetById(id)!;
-            _event.UpdateEvent(model.Title, model.StartAt, model.EndAt, model.Description);
+            evt.UpdateEvent(model.Title, model.StartAt, model.EndAt, model.Description);
+            _repository.Update(evt);
             _logger.LogInformation($"Мероприятия c {id} обновлено");
-            _repository.Update(_event);
-
-
-
         }
         /// <summary>
         /// Получить все мероприятия
@@ -98,13 +93,13 @@ namespace EventManagement.Services
 
 
         /// <summary>
-        /// 
+        /// Получить мероприятия по фильтру
         /// </summary>
-        /// <param name="title"></param>
-        /// <param name="from"></param>
-        /// <param name="to"></param>
-        /// <param name="page"></param>
-        /// <param name="pageSize"></param>
+        /// <param name="title">Фильтр наименования</param>
+        /// <param name="from">Фильр даты с</param>
+        /// <param name="to">Фильтр даты по</param>
+        /// <param name="page">Номер страницы</param>
+        /// <param name="pageSize">Размер страницы</param>
         /// <returns></returns>
         /// <exception cref="ValidationException"></exception>
         public PaginatedResultDto<EventDTO> GetFilteredEvents(EventFilterDTO model)
@@ -117,8 +112,6 @@ namespace EventManagement.Services
             string _title = string.Empty;
             DateTime _to = DateTime.MinValue;
             bool hasTitleFiltration = false, hasFromFiltration = false, hasToFiltration = false;
-
-
 
             if (!string.IsNullOrEmpty(model.Title))
             {
@@ -174,26 +167,25 @@ namespace EventManagement.Services
         /// </summary>
         /// <param name="id">Идентификатор мероприятия</param>
         /// <returns></returns>
-        /// <exception cref="EventNotFoundedExeption"></exception>
-        public EventDTO? GetEventById(Guid id)
+        /// <exception cref="EventNotFoundedExсeption"></exception>
+        public EventDTO GetEventById(Guid id)
         {
             _logger.LogInformation($"Вызван метод {nameof(GetEventById)}");
 
-            if (!_repository.IsExist(id)) throw new EventNotFoundedExeption(id);
-
-            var _event = EventDTO.GetModel(_repository.GetById(id)!);
-            _logger.LogInformation($"Мероприятие с {id} получено");
-            return _event;
+            var evt = _repository.GetById(id);
+            if (evt == null) throw new EventNotFoundedExсeption(id);
+            _logger.LogInformation($"Мероприятие с {evt.Id} получено");
+            return EventDTO.GetModel(evt);
         }
         /// <summary>
-        /// Удаление мероприятие
+        /// Удаление мероприятия
         /// </summary>
         /// <param name="id">Идентификатор мероприятия</param>
-        /// <exception cref="EventNotFoundedExeption"></exception>
+        /// <exception cref="EventNotFoundedExсeption"></exception>
         public void RemoveEvent(Guid id)
         {
             _logger.LogInformation($"Вызван метод {nameof(RemoveEvent)}");
-            if (!_repository.IsExist(id)) throw new EventNotFoundedExeption(id);
+            if (!_repository.IsExist(id)) throw new EventNotFoundedExсeption(id);
             _repository.Delete(id);
             _logger.LogInformation($"Мероприятие с {id} удалено");
 
