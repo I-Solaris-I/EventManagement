@@ -11,7 +11,7 @@ namespace EventManagement.Tests
     /// </summary>
     public class BookingServiceUnitTests
     {
-        private readonly Mock<IRepository<Booking>> _repositoryBookingMock;
+        private readonly Mock<IBookingRepository> _repositoryBookingMock;
         private readonly Mock<IRepository<Event>> _repositoryEventMock;
         private readonly Mock<ILogger<BookingService>> _loggerMock;
         private readonly List<Booking> _allBookings =
@@ -70,7 +70,7 @@ namespace EventManagement.Tests
 
         public BookingServiceUnitTests()
         {
-            _repositoryBookingMock = new Mock<IRepository<Booking>>();
+            _repositoryBookingMock = new Mock<IBookingRepository>();
             _repositoryEventMock = new Mock<IRepository<Event>>();
             _loggerMock = new Mock<ILogger<BookingService>>();
             _repositoryBookingMock.Setup(a => a.GetAll()).Returns(_allBookings);
@@ -125,7 +125,7 @@ namespace EventManagement.Tests
             var bookingService = new BookingService(_repositoryBookingMock.Object, _repositoryEventMock.Object, _loggerMock.Object);
 
             //Act && Assert
-            await Assert.ThrowsAsync<EventNotFoundedExсeption>(() =>  bookingService.CreateBookingAsync(testGuid, TestContext.Current.CancellationToken));
+            await Assert.ThrowsAsync<EventNotFoundedException>(() => bookingService.CreateBookingAsync(testGuid, TestContext.Current.CancellationToken));
 
         }
 
@@ -152,22 +152,249 @@ namespace EventManagement.Tests
             var bookingService = new BookingService(_repositoryBookingMock.Object, _repositoryEventMock.Object, _loggerMock.Object);
 
             //Act 
-            var result=await bookingService.GetBookingByIdAsync(testGuid, TestContext.Current.CancellationToken);
+            var result = await bookingService.GetBookingByIdAsync(testGuid, TestContext.Current.CancellationToken);
             // Assert
             Assert.NotNull(result);
             _repositoryBookingMock.Verify(a => a.GetById(testGuid), Times.Once());
         }
+
+
+
+
         [Fact]
-        public async Task GetBookingByIdAsync_NotExistingId_ShouldReturnBookingNotFoundedException()
+        public async Task ProcessPendingBookingAsync_WhenBookingNotFound_ShouldThrow()
         {
-            //Arrange
-            var testGuid = Guid.NewGuid();
-            _repositoryBookingMock.Setup(a => a.GetById(testGuid)).Returns((Booking?)null);
+            // Arrange
+            var bookingId = Guid.NewGuid();
+
+            _repositoryBookingMock
+                .Setup(x => x.GetById(bookingId))
+                .Returns((Booking?)null);
+            var bookingService = new BookingService(_repositoryBookingMock.Object, _repositoryEventMock.Object, _loggerMock.Object);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<BookingNotFoundedException>(
+                () => bookingService.ProcessPendingBookingAsync(bookingId, TestContext.Current.CancellationToken));
+        }
+
+        [Fact]
+        public async Task ProcessPendingBookingAsync_WhenBookingIsNotPending_ShouldThrowBookingBusinessException()
+        {
+            // Arrange
+            var bookingId = Guid.NewGuid();
+
+            var booking = new Booking(
+                bookingId,
+                BookingStatus.Confirmed,
+                Guid.NewGuid(),
+                DateTime.UtcNow,
+                null);
+
+            _repositoryBookingMock
+                .Setup(x => x.GetById(bookingId))
+                .Returns(booking);
+            var bookingService = new BookingService(_repositoryBookingMock.Object, _repositoryEventMock.Object, _loggerMock.Object);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<BookingBusinessException>(
+                () => bookingService.ProcessPendingBookingAsync(bookingId, TestContext.Current.CancellationToken));
+
+            Assert.Contains(
+                BookingStatus.Pending.ToString(),
+                exception.Message);
+        }
+
+        [Fact]
+        public async Task ProcessPendingBookingAsync_WhenEventNotFound_ShouldRejectBooking()
+        {
+            // Arrange
+            var bookingId = Guid.NewGuid();
+            var eventId = Guid.NewGuid();
+
+            var booking = new Booking(
+                bookingId,
+                BookingStatus.Pending,
+                eventId,
+                DateTime.UtcNow,
+                null);
+
+            var rejectedBooking = new Booking(
+                bookingId,
+                BookingStatus.Rejected,
+                eventId,
+                booking.CreatedAt,
+                DateTime.UtcNow);
+
+            _repositoryBookingMock
+                .Setup(x => x.GetById(bookingId))
+                .Returns(booking);
+
+            _repositoryEventMock
+                .Setup(x => x.GetById(eventId))
+                .Returns((Event?)null);
+
+            _repositoryBookingMock
+                .Setup(x => x.Reject(bookingId))
+                .Returns(rejectedBooking);
+            var bookingService = new BookingService(_repositoryBookingMock.Object, _repositoryEventMock.Object, _loggerMock.Object);
+
+            // Act
+            var result = await bookingService.ProcessPendingBookingAsync(bookingId, TestContext.Current.CancellationToken);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(BookingStatus.Rejected, result.Status);
+
+            _repositoryBookingMock.Verify(
+                x => x.Reject(bookingId),
+                Times.Once);
+
+            _repositoryBookingMock.Verify(
+                x => x.Confirm(It.IsAny<Guid>()),
+                Times.Never);
+        }
+
+        [Fact]
+        public async Task ProcessPendingBookingAsync_WhenEventAlreadyStarted_ShouldRejectBooking()
+        {
+            // Arrange
+            var bookingId = Guid.NewGuid();
+            var eventId = Guid.NewGuid();
+
+            var booking = new Booking(
+                bookingId,
+                BookingStatus.Pending,
+                eventId,
+                DateTime.UtcNow,
+                null);
+
+            var evt = new Event(eventId, "Название", DateTime.UtcNow.AddMinutes(-10), DateTime.UtcNow.AddMinutes(-5));
+
+
+            var rejectedBooking = new Booking(
+                bookingId,
+                BookingStatus.Rejected,
+                eventId,
+                booking.CreatedAt,
+                DateTime.UtcNow);
+
+            _repositoryBookingMock
+                .Setup(x => x.GetById(bookingId))
+                .Returns(booking);
+
+            _repositoryEventMock
+                .Setup(x => x.GetById(eventId))
+                .Returns(evt);
+
+            _repositoryBookingMock
+                .Setup(x => x.Reject(bookingId))
+                .Returns(rejectedBooking);
 
             var bookingService = new BookingService(_repositoryBookingMock.Object, _repositoryEventMock.Object, _loggerMock.Object);
- 
-             //Act && Assert
-            await Assert.ThrowsAsync<BookingNotFoundedException>(() => bookingService.GetBookingByIdAsync(testGuid, TestContext.Current.CancellationToken));
+
+            // Act
+            var result = await bookingService.ProcessPendingBookingAsync(bookingId, TestContext.Current.CancellationToken);
+
+            // Assert
+            Assert.Equal(BookingStatus.Rejected, result.Status);
+
+            _repositoryBookingMock.Verify(
+                x => x.Reject(bookingId),
+                Times.Once);
+
+            _repositoryBookingMock.Verify(
+                x => x.Confirm(It.IsAny<Guid>()),
+                Times.Never);
         }
+
+        [Fact]
+        public async Task ProcessPendingBookingAsync_WhenEventHasNotStarted_ShouldConfirmBooking()
+        {
+            // Arrange
+            var bookingId = Guid.NewGuid();
+            var eventId = Guid.NewGuid();
+
+            var booking = new Booking(
+                bookingId,
+                BookingStatus.Pending,
+                eventId,
+                DateTime.UtcNow,
+                null);
+
+            var evt = new Event(eventId, "Название", DateTime.UtcNow.AddHours(1), DateTime.UtcNow.AddHours(2));
+
+
+            var confirmedBooking = new Booking(
+                bookingId,
+                BookingStatus.Confirmed,
+                eventId,
+                booking.CreatedAt,
+                DateTime.UtcNow);
+
+            _repositoryBookingMock
+                .Setup(x => x.GetById(bookingId))
+                .Returns(booking);
+
+            _repositoryEventMock
+                .Setup(x => x.GetById(eventId))
+                .Returns(evt);
+
+            _repositoryBookingMock
+                .Setup(x => x.Confirm(bookingId))
+                .Returns(confirmedBooking);
+            
+            var bookingService = new BookingService(_repositoryBookingMock.Object, _repositoryEventMock.Object, _loggerMock.Object);
+
+            // Act
+            var result = await bookingService.ProcessPendingBookingAsync(bookingId,TestContext.Current.CancellationToken);
+
+            // Assert
+            Assert.Equal(BookingStatus.Confirmed, result.Status);
+
+            _repositoryBookingMock.Verify(
+                x => x.Confirm(bookingId),
+                Times.Once);
+
+            _repositoryBookingMock.Verify(
+                x => x.Reject(It.IsAny<Guid>()),
+                Times.Never);
+        }
+
+        [Fact]
+        public async Task ProcessPendingBookingAsync_WhenConfirmReturnsNull_ShouldThrowInvalidOperationException()
+        {
+            // Arrange
+            var bookingId = Guid.NewGuid();
+            var eventId = Guid.NewGuid();
+
+            var booking = new Booking(
+                bookingId,
+                BookingStatus.Pending,
+                eventId,
+                DateTime.UtcNow,
+                null);
+
+            var evt = new Event(eventId, "Название", DateTime.UtcNow.AddHours(1), DateTime.UtcNow.AddHours(2));
+
+
+            _repositoryBookingMock
+                .Setup(x => x.GetById(bookingId))
+                .Returns(booking);
+
+            _repositoryEventMock
+                .Setup(x => x.GetById(eventId))
+                .Returns(evt);
+
+            _repositoryBookingMock
+                .Setup(x => x.Confirm(bookingId))
+                .Returns((Booking?)null);
+            var bookingService = new BookingService(_repositoryBookingMock.Object, _repositoryEventMock.Object, _loggerMock.Object);
+
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => bookingService.ProcessPendingBookingAsync(bookingId, TestContext.Current.CancellationToken));
+        }
+
     }
 }
