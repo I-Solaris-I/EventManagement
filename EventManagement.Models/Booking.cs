@@ -139,12 +139,13 @@ namespace EventManagement.Models
             if (processedAt.HasValue)
             {
                 if (status == BookingStatus.Pending)
-                    throw new ArgumentException(nameof(status));
+                    throw new ArgumentException($"Бронь с датой обработки не может быть в статусе {BookingStatus.Pending.ToString()}", paramName: nameof(status));
             }
-  
+
+
             if (processedAt.HasValue && processedAt.Value < createdAt)
             {
-                throw new ArgumentException(nameof(processedAt));
+                throw new ArgumentException($"Дата окончания обработки не может быть меньше даты создания", paramName: nameof(processedAt));
             }
             Id = id;
             EventId = eventId;
