@@ -11,5 +11,7 @@ namespace EventManagement.Services.Interfaces
     {
         Task<BookingDTO> CreateBookingAsync(Guid eventId, CancellationToken token = default);
         Task<BookingDTO> GetBookingByIdAsync(Guid bookingId, CancellationToken token = default);
+        Task<BookingDTO> ProcessPendingBookingAsync(Guid bookingId, CancellationToken token = default);
+
     }
 }
