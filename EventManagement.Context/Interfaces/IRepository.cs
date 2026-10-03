@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace EventManagement.Context.Interfaces
 {
-    public interface IRepository<T> where T: class
+    public interface IRepository<T> where T : class
     {
         IEnumerable<T> GetAll();
         T? GetById(Guid id);
@@ -15,5 +15,11 @@ namespace EventManagement.Context.Interfaces
         void Update(T data);
         void Delete(Guid id);
         bool IsExist(Guid id);
+    }
+
+    public interface IBookingRepository : IRepository<Booking>
+    {
+        Booking? Confirm(Guid id);
+        Booking? Reject(Guid id);
     }
 }
