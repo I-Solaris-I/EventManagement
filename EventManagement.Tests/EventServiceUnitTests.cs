@@ -383,8 +383,8 @@ namespace EventManagement.Tests
         public void CreateEvent_InvalidDate_ShouldThrowValidationExeption()
         {
             //Arrange
-            var dto = new CreateUpdateEventDTO("Новое мероприятие", DateTime.MinValue, DateTime.Now);
-            var eventService = new EventService(_repositoryMock.Object, _loggerMock.Object,new CreateUpdateEventDTOValidation(), _validatorEFMock.Object);
+            var dto = new CreateUpdateEventDTO("Новое мероприятие", DateTime.MinValue, DateTime.UtcNow);
+            var eventService = new EventService(_repositoryMock.Object, _loggerMock.Object, new CreateUpdateEventDTOValidation(), _validatorEFMock.Object);
 
             //Act && Assert
             Assert.Throws<ValidationException>(() => eventService.CreateEvent(dto));
@@ -394,11 +394,12 @@ namespace EventManagement.Tests
         public void UpdateEvent_InvalidDate_ShouldThrowValidationExeption()
         {
             //Arrange
-            var dto = new CreateUpdateEventDTO("Новое мероприятие", DateTime.Now, DateTime.Now.AddHours(-5));
+            var evt = _allEvents.First();
+            var updData = new CreateUpdateEventDTO("Новое название", DateTime.UtcNow, DateTime.MinValue);
             var eventService = new EventService(_repositoryMock.Object, _loggerMock.Object, new CreateUpdateEventDTOValidation(), _validatorEFMock.Object);
 
             //Act && Assert
-            Assert.Throws<ValidationException>(() => eventService.CreateEvent(dto));
+            Assert.Throws<ValidationException>(() => eventService.UpdateEvent(evt.Id, updData));
         }
     }
 }
