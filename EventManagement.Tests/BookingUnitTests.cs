@@ -75,6 +75,57 @@ namespace EventManagement.Tests
             //Assert
             Assert.Equal(BookingStatus.Rejected, evt.Status);
         }
+        [Fact]
+        public void BookingFullContructor_ProcessedAtAndPending_ShouldThrowArgumentException()
+        {
+            //Arrange
+            var bookingId= Guid.NewGuid();
+            var utcNow= DateTime.UtcNow;
+            var eventId = Guid.NewGuid();
+            var createdAt = utcNow.AddMinutes(-1);
+            var processedAt = utcNow;
+            var status = BookingStatus.Pending;
+            //Act 
+            var ex = Assert.Throws<ArgumentException>(() => new Booking(bookingId, status, eventId, createdAt, processedAt));
+            //Assert
+            Assert.Equal("status", ex.ParamName);
+        }
 
+        [Fact]
+        public void BookingFullContructor_ProcessedAtLessThanCreatedAt_ShouldThrowArgumentException()
+        {
+            //Arrange
+            var bookingId = Guid.NewGuid();
+            var utcNow = DateTime.UtcNow;
+            var eventId = Guid.NewGuid();
+            var createdAt = utcNow;
+            var processedAt = utcNow.AddMinutes(-1);
+            var status = BookingStatus.Confirmed;
+            //Act  
+            var ex = Assert.Throws<ArgumentException>(() => new Booking(bookingId, status, eventId, createdAt, processedAt));
+            //Assert
+            Assert.Equal("processedAt", ex.ParamName);
+        }
+
+        [Fact]
+        public void BookingFullContructor_AllField_ShouldNotHaveEmptyOrNull()
+        {
+            //Arrange
+            var bookingId = Guid.NewGuid();
+            var utcNow = DateTime.UtcNow;
+            var eventId = Guid.NewGuid();
+            var createdAt = utcNow;
+            var processedAt = utcNow.AddMinutes(1);
+            var status = BookingStatus.Confirmed;
+            //Act  
+            var booking= new Booking(bookingId, status, eventId, createdAt, processedAt);
+            //Assert
+            Assert.NotEqual(Guid.Empty,booking.EventId);
+            Assert.NotEqual(Guid.Empty, booking.Id);
+            Assert.NotEqual(DateTime.MinValue, booking.CreatedAt);
+            Assert.Equal(status,booking.Status);
+            Assert.NotNull(booking.ProcessedAt);
+
+        }
     }
 }
