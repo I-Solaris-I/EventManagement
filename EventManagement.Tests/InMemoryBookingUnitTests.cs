@@ -15,41 +15,41 @@ namespace EventManagement.Tests
             new Event(
                 Guid.Parse("26c5f628-ba61-4281-b106-d473da7c7114"),
                 "Illum eum beatae et.",
-                DateTime.Parse("2025-09-19T01:14:01.1052829+03:00"),
-                DateTime.Parse("2025-09-19T16:14:01.1052829+03:00"),
+                DateTime.UtcNow.AddDays(5),
+                DateTime.UtcNow.AddDays(5).AddHours(5),
             "Saepe alias rerum repellendus exercitationem ipsam suscipit"
             ),
             new Event(
                 Guid.Parse("c9cfdfd8-e38d-4e0f-bcf2-bb20e6c632c0"),
                 "Aut vel aut repellat aut pariatur exercitationem neque qui in.",
-                DateTime.Parse("2025-09-20T10:32:36.6775856+03:00"),
-                DateTime.Parse("2025-09-20T22:32:36.6775856+03:00"),
+               DateTime.UtcNow.AddDays(5),
+                DateTime.UtcNow.AddDays(5).AddHours(5),
                 null
             ),
             new Event(
                 Guid.Parse("f9f43d97-e81b-4bdf-951f-4e0fb1daee31"),
                 "Illum et iste mollitia.",
-                DateTime.Parse("2025-09-22T10:48:15.0296976+03:00"),
-                DateTime.Parse("2025-09-22T11:48:15.0296976+03:00"),
-                "Voluptatum dolorem non voluptatem odio maiores minus. Amet nisi est recusandae veniam quasi maxime. Natus alias pariatur eos magni. Hic quo ipsa suscipit voluptas magni nobis et rerum. Et autem quo quaerat eius. Tenetur voluptatem culpa provident."
+                  DateTime.UtcNow.AddDays(5),
+                DateTime.UtcNow.AddDays(5).AddHours(5),
+                "Voluptatum doloremnon voluptatem odio maiores minus. Amet nisi est recusandae veniam quasi maxime. Natus alias pariatur eos magni. Hic quo ipsa suscipit voluptas magni nobis et rerum. Et autem quo quaerat eius. Tenetur voluptatem culpa provident."
             ),
             new Event(
                 Guid.Parse("d355aeaf-3687-410e-8ea7-6f6993bf12ef"),
                 "Inventore numquam quaerat iusto quos quis doloremque consequatur.",
-                DateTime.Parse("2025-09-29T09:55:28.956633+03:00"),
-                DateTime.Parse("2025-09-30T09:55:28.956633+03:00"),
+               DateTime.UtcNow.AddDays(5),
+                DateTime.UtcNow.AddDays(5).AddHours(5),
                 null),
             new Event(
                 Guid.Parse("416466f1-60c1-4897-b414-dd476652ed08"),
                 "Error expedita id fugiat ipsam quod et corporis omnis.",
-                DateTime.Parse("2025-12-20T03:49:02.0584699+03:00"),
-                DateTime.Parse("2025-12-20T16:49:02.0584699+03:00"),
+                DateTime.UtcNow.AddDays(5),
+                DateTime.UtcNow.AddDays(5).AddHours(5),
                 null),
             new Event(
                 Guid.Parse("73e4bdc1-d9e0-4cce-8a8d-650ceaf0ad72"),
                 "Numquam suscipit labore aliquid magni non ratione consequatur aut maiores.",
-                DateTime.Parse("2025-12-23T19:34:22.6389131+03:00"),
-                DateTime.Parse("2025-12-24T16:34:22.6389131+03:00"),
+                DateTime.UtcNow.AddDays(5),
+                DateTime.UtcNow.AddDays(5).AddHours(5),
                 null)];
         public InMemoryBooking BookingRepository { get; set; }
 
@@ -67,13 +67,20 @@ namespace EventManagement.Tests
     public class InMemoryBookingUnitTests : IClassFixture<InMemoryBookingFixture>
     {
         private readonly IReadOnlyCollection<Event> _allEvents;
-        private readonly IRepository<Booking> _repository;
+        private readonly IBookingRepository _repository;
 
         private Booking CreateTestBooking()
         {
             return new Booking(_allEvents.First().Id);
         }
-
+        private Booking CreateRejectedBooking()
+        {
+            return new Booking(Guid.NewGuid(), BookingStatus.Rejected, _allEvents.First().Id, DateTime.UtcNow.AddMinutes(-1), DateTime.UtcNow);
+        }
+        private Booking CreateConfirmedBooking()
+        {
+            return new Booking(Guid.NewGuid(), BookingStatus.Confirmed, _allEvents.First().Id, DateTime.UtcNow.AddMinutes(-1), DateTime.UtcNow);
+        }
         public InMemoryBookingUnitTests(InMemoryBookingFixture fixture)
         {
             _repository = fixture.BookingRepository;
@@ -116,7 +123,7 @@ namespace EventManagement.Tests
 
         [Fact]
         public void IsExist_NotExistingId_ShouldReturnFalse()
-        {            
+        {
             // Arrange
             var guid = Guid.Empty;
             // Act
@@ -141,7 +148,7 @@ namespace EventManagement.Tests
         public void Delete_ExistingId_ShouldRemoveBooking()
         {
             // Arrange
-            var booking = CreateTestBooking();            
+            var booking = CreateTestBooking();
             // Act && Assert
             _repository.Create(booking);
             Assert.True(_repository.IsExist(booking.Id));
@@ -155,10 +162,67 @@ namespace EventManagement.Tests
             // Arrange
             var guid = Guid.Empty;
             // Act
-                var exception = Record.Exception(() =>
-                   _repository.Delete(Guid.NewGuid()));
+            var exception = Record.Exception(() =>
+               _repository.Delete(Guid.NewGuid()));
             //Assert
             Assert.Null(exception);
+        }
+
+        [Fact]
+        public void Confirm_ExistingId_ShouldSetConfirmed()
+        {
+            // Arrange
+            var booking = CreateTestBooking();
+            _repository.Create(booking);
+            var repBooking = _repository.GetById(booking.Id);
+            // Act
+            _repository.Confirm(repBooking!.Id);
+            repBooking = _repository.GetById(booking.Id);
+
+            //Assert
+            Assert.Equal(BookingStatus.Confirmed, repBooking!.Status);
+        }
+        [Fact]
+        public void Confirm_ExistingId_ShouldSetRejected()
+        {
+            // Arrange
+            var booking = CreateTestBooking();
+            _repository.Create(booking);
+            var repBooking = _repository.GetById(booking.Id);
+            // Act
+            _repository.Reject(repBooking!.Id);
+            repBooking = _repository.GetById(booking.Id);
+
+            //Assert
+            Assert.Equal(BookingStatus.Rejected, repBooking!.Status);
+        }
+        [Fact]
+        public void Confirm_ExistingConfirmedBooking_ShouldNotSetRejected()
+        {
+            // Arrange
+            var booking = CreateConfirmedBooking();
+            _repository.Create(booking);
+            var repBooking = _repository.GetById(booking.Id);
+            // Act
+            _ = _repository.Confirm(repBooking!.Id);
+            repBooking = _repository.GetById(booking.Id);
+
+            //Assert
+            Assert.NotEqual(BookingStatus.Rejected, repBooking!.Status);
+        }
+        [Fact]
+        public void Confirm_ExistingRejectedBooking_ShouldNotSetConfirmed()
+        {
+            // Arrange
+            var booking = CreateRejectedBooking();
+            _repository.Create(booking);
+            var repBooking = _repository.GetById(booking.Id);
+            // Act
+            _ = _repository.Confirm(repBooking!.Id);
+            repBooking = _repository.GetById(booking.Id);
+
+            //Assert
+            Assert.NotEqual(BookingStatus.Confirmed, repBooking!.Status);
         }
     }
 }
