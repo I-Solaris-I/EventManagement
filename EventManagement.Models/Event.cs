@@ -10,7 +10,7 @@ namespace EventManagement.Models
     /// <summary>
     /// Исключение для отстутствующего мероприятия
     /// </summary>
-    public class EventNotFoundedExсeption : Exception
+    public class EventNotFoundedException : Exception
     {
         /// <summary>
         /// Идентификатор ненайденного мероприятия
@@ -20,7 +20,7 @@ namespace EventManagement.Models
         /// Конструктор
         /// </summary>
         /// <param name="Id">Идентификатор ненайденного мероприятия</param>
-        public EventNotFoundedExсeption(Guid Id) : base($"Мероприятие c Id={Id} не найдено")
+        public EventNotFoundedException(Guid Id) : base($"Мероприятие c Id={Id} не найдено")
         {
             EventId = Id;
         }
@@ -29,7 +29,7 @@ namespace EventManagement.Models
         /// </summary>
         /// <param name="Id">Идентификатор ненайденного мероприятия</param>
         /// <param name="message">Сообщение</param>
-        public EventNotFoundedExсeption(Guid Id, string? message) : base(message)
+        public EventNotFoundedException(Guid Id, string? message) : base(message)
         {
             EventId = Id;
         }
@@ -39,7 +39,7 @@ namespace EventManagement.Models
         /// <param name="Id">Идентификатор ненайденного мероприятия</param>
         /// <param name="message">Сообщение</param>
         /// <param name="innerException">Вложенное исключение</param>
-        public EventNotFoundedExсeption(Guid Id, string? message, Exception? innerException) : base(message, innerException)
+        public EventNotFoundedException(Guid Id, string? message, Exception? innerException) : base(message, innerException)
         {
             EventId = Id;
         }

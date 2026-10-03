@@ -61,7 +61,7 @@ namespace EventManagement.Services
         /// </summary>
         /// <param name="id">Идентификатор мероприятия</param>
         /// <param name="model">Модель обновления</param>
-        /// <exception cref="EventNotFoundedExсeption"></exception>
+        /// <exception cref="EventNotFoundedException"></exception>
         /// <exception cref="ValidationException"></exception>
         public void UpdateEvent(Guid id, CreateUpdateEventDTO model)
         {
@@ -73,7 +73,7 @@ namespace EventManagement.Services
             if (!result.IsValid) throw new ValidationException(result.Errors);
 
             var evt = _repository.GetById(id);
-            if (evt == null) throw new EventNotFoundedExсeption(id);
+            if (evt == null) throw new EventNotFoundedException(id);
 
             evt.UpdateEvent(model.Title, model.StartAt, model.EndAt, model.Description);
             _repository.Update(evt);
@@ -167,13 +167,13 @@ namespace EventManagement.Services
         /// </summary>
         /// <param name="id">Идентификатор мероприятия</param>
         /// <returns></returns>
-        /// <exception cref="EventNotFoundedExсeption"></exception>
+        /// <exception cref="EventNotFoundedException"></exception>
         public EventDTO GetEventById(Guid id)
         {
             _logger.LogInformation($"Вызван метод {nameof(GetEventById)}");
 
             var evt = _repository.GetById(id);
-            if (evt == null) throw new EventNotFoundedExсeption(id);
+            if (evt == null) throw new EventNotFoundedException(id);
             _logger.LogInformation($"Мероприятие с {evt.Id} получено");
             return EventDTO.GetModel(evt);
         }
@@ -181,11 +181,11 @@ namespace EventManagement.Services
         /// Удаление мероприятия
         /// </summary>
         /// <param name="id">Идентификатор мероприятия</param>
-        /// <exception cref="EventNotFoundedExсeption"></exception>
+        /// <exception cref="EventNotFoundedException"></exception>
         public void RemoveEvent(Guid id)
         {
             _logger.LogInformation($"Вызван метод {nameof(RemoveEvent)}");
-            if (!_repository.IsExist(id)) throw new EventNotFoundedExсeption(id);
+            if (!_repository.IsExist(id)) throw new EventNotFoundedException(id);
             _repository.Delete(id);
             _logger.LogInformation($"Мероприятие с {id} удалено");
 

@@ -192,7 +192,7 @@ namespace EventManagement.Tests
             var notExistingGuid = Guid.Parse("c2cfdfd8-e38d-4e0f-bcf2-bb3206c632c0");
             var eventService = new EventService(_repositoryMock.Object, _loggerMock.Object, _validatorCUEMock.Object, _validatorEFMock.Object);
             //Act && Assert
-            Assert.Throws<EventNotFoundedExсeption>(() => eventService.GetEventById(notExistingGuid));
+            Assert.Throws<EventNotFoundedException>(() => eventService.GetEventById(notExistingGuid));
             _repositoryMock.Verify(a => a.GetById(It.IsAny<Guid>()), Times.Once);
         }
 
@@ -278,7 +278,7 @@ namespace EventManagement.Tests
 
 
             //Act && Assert
-            Assert.Throws<EventNotFoundedExсeption>(() => eventService.UpdateEvent(notExistedGuid, model));
+            Assert.Throws<EventNotFoundedException>(() => eventService.UpdateEvent(notExistedGuid, model));
 
             _repositoryMock.Verify(
                   x => x.Update(It.IsAny<Event>()),
@@ -374,7 +374,7 @@ namespace EventManagement.Tests
             var eventService = new EventService(_repositoryMock.Object, _loggerMock.Object, _validatorCUEMock.Object, _validatorEFMock.Object);
 
             //Act && Assert
-            Assert.Throws<EventNotFoundedExсeption>(() => eventService.RemoveEvent(notExistedGuid));
+            Assert.Throws<EventNotFoundedException>(() => eventService.RemoveEvent(notExistedGuid));
             _repositoryMock.Verify(a => a.Delete(notExistedGuid), Times.Never);
         }
 
