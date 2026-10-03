@@ -15,6 +15,9 @@ namespace EventManagement.Context
     /// </summary>
     public class InMemoryEvents : IRepository<Event>
     {
+        private const int fakerSeed = 8675309;
+        private const int generateCount = 100;
+        private const int randomSetDescriprion = 30;
         private readonly Lock _lock;
 
         private List<Event> _events;
@@ -24,16 +27,13 @@ namespace EventManagement.Context
         public InMemoryEvents()
         {
             _lock = new();
-            _events = new();
-            Randomizer.Seed = new Random(8675309);
             var test_data = new Faker<Event>().CustomInstantiator((f) =>
-            {
-                var startAt = f.Date.Between(DateTime.Now.AddDays(-365), DateTime.Now.AddDays(365));
-                var endAt = startAt.AddHours(f.Random.Int(1, 24));
-                return new Event(Guid.NewGuid(), f.Lorem.Sentence(), startAt, endAt, f.Random.Number(0, 100) > 30 ? f.Lorem.Paragraph() : null);
-            });
-
-            _events = test_data.UseSeed(8675309).Generate(100).OrderByDescending(u => u.StartAt).ToList();
+              {
+                  var startAt = f.Date.Between(DateTime.UtcNow.AddDays(-365), DateTime.UtcNow.AddDays(365));
+                  var endAt = startAt.AddHours(f.Random.Int(1, 24));
+                  return new Event(f.Random.Guid(), f.Lorem.Sentence(), startAt, endAt, f.Random.Number(0, 100) > randomSetDescriprion ? f.Lorem.Paragraph() : null);
+              });
+            _events = test_data.UseSeed(fakerSeed).Generate(generateCount).OrderByDescending(u => u.StartAt).ToList();
 
         }
         /// <summary>
@@ -96,7 +96,12 @@ namespace EventManagement.Context
         {
             using (_lock.EnterScope())
             {
-                return _events.FirstOrDefault(a => a.Id == id);
+                var evt= _events.FirstOrDefault(a => a.Id == id);
+                if (evt != null)
+                {
+                    return new Event(evt.Id, evt.Title, evt.StartAt, evt.EndAt, evt.Description);
+                }
+                else return null;
             }
 
         }
