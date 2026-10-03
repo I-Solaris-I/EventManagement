@@ -141,7 +141,7 @@ namespace EventManagement.Models
                 if (status == BookingStatus.Pending)
                     throw new ArgumentException(nameof(status));
             }
-            ;
+  
             if (processedAt.HasValue && processedAt.Value < createdAt)
             {
                 throw new ArgumentException(nameof(processedAt));
@@ -150,6 +150,7 @@ namespace EventManagement.Models
             EventId = eventId;
             Status = status;
             CreatedAt = createdAt;
+            ProcessedAt = processedAt;
         }
     }
 
