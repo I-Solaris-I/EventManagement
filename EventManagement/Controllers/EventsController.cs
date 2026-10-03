@@ -51,7 +51,6 @@ namespace EventManagement.Controllers
         /// <param name="id">Идентификатор мероприятия</param>
         /// <returns></returns>
         /// <response code="200">Мероприятие получено</response>
-
         [HttpGet("{id}")]
         public ActionResult<EventDTO> GetEventById([FromRoute][Required] Guid id)
         {
@@ -62,12 +61,16 @@ namespace EventManagement.Controllers
         /// Создать бронь мероприятия
         /// </summary>
         /// <param name="id">Идентификатор мероприятия</param>
+        /// <param name="ct">Токен отмены</param>
         /// <returns></returns>
-        /// <response code="200">Бронь создана, ожидает обработки</response>
+        /// <response code="202">Бронь создана, ожидает обработки</response>
+        /// <response code="400">Мероприятие уже началось, бронирование невозможно</response>
+        /// <response code="404">Мероприятие не найдено, бронирование невозможно</response>
+
         [HttpPost("{id}/book")]
-        public async Task<ActionResult<BookingDTO>> CreateBooking([FromRoute] Guid id)
+        public async Task<ActionResult<BookingDTO>> CreateBooking([FromRoute] Guid id, CancellationToken ct)
         {
-            var booking = await _bookingService.CreateBookingAsync(id);
+            var booking = await _bookingService.CreateBookingAsync(id,ct);
             return AcceptedAtAction(nameof(BookingsController.GetBooking), nameof(BookingsController).Replace("controller", "", StringComparison.InvariantCultureIgnoreCase),new {id=booking.Id}, booking);
         }
 
