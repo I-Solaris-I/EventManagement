@@ -30,6 +30,8 @@ namespace EventManagement.Controllers
         /// <param name="ct">Токен отмены </param>
         /// <returns></returns>
         /// <response code="200">Получена информация о бронировании</response>
+        /// <response code="404">Бронь не найдена</response>
+
         [HttpGet("{id}")]
         public async Task<ActionResult<BookingDTO>> GetBooking([FromRoute] Guid id, CancellationToken ct)
         {
