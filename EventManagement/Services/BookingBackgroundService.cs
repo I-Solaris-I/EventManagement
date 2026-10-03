@@ -60,7 +60,8 @@ namespace EventManagement.Services
 
             await using var scope = _scopeFactory.CreateAsyncScope();
 
-            var bookingRepository = scope.ServiceProvider.GetRequiredService<IRepository<Booking>>();
+            var bookingRepository = scope.ServiceProvider.GetRequiredService<IBookingRepository>();
+            var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
 
             foreach (var booking in bookingRepository.GetAll().Where(a => a.Status == BookingStatus.Pending))
             {

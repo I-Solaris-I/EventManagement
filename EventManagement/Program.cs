@@ -43,15 +43,13 @@ builder.Services.AddControllers(options =>
 });
 
 
-
-//TODO: Для данных в памяти используем Singleton(для многопоточного доступа в InMemoryEvents используется System/Threading.Lock, однако для других реализаций будем использовать Scoped
 builder.Services.AddSingleton<IRepository<Event>, InMemoryEvents>();
 builder.Services.AddTransient<IValidator<CreateUpdateEventDTO>, CreateUpdateEventDTOValidation>();
 builder.Services.AddTransient<IValidator<EventFilterDTO>, EventFilterDTOValidation>();
 builder.Services.AddScoped<IEventService, EventService>();
 
 
-builder.Services.AddSingleton<IRepository<Booking>, InMemoryBooking>();
+builder.Services.AddSingleton<IBookingRepository, InMemoryBooking>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddHostedService<BookingBackgroundService>();
 var app = builder.Build();

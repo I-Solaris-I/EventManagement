@@ -7,7 +7,7 @@ namespace EventManagement.Services
 {
     public class BookingService : IBookingService
     {
-        private readonly IRepository<Booking> _repositoryBooking;
+        private readonly IBookingRepository _repositoryBooking;
         private readonly IRepository<Event> _repositoryEvent;
 
         private readonly ILogger<BookingService> _logger;
@@ -17,7 +17,7 @@ namespace EventManagement.Services
         /// <param name="repositoryBooking">репозиторий бронирований</param>
         /// <param name="repositoryEvent">репозиторий мероприятий</param>
         /// <param name="logger">логгер</param>
-        public BookingService(IRepository<Booking> repositoryBooking, IRepository<Event> repositoryEvent, ILogger<BookingService> logger)
+        public BookingService(IBookingRepository repositoryBooking, IRepository<Event> repositoryEvent, ILogger<BookingService> logger)
         {
             _logger = logger;
             _repositoryBooking = repositoryBooking;
@@ -29,7 +29,7 @@ namespace EventManagement.Services
         /// <param name="eventId">Идентификатор мероприятия</param>
         /// <param name="token">Токен отмены</param>
         /// <returns></returns>
-        /// <exception cref="EventNotFoundedExсeption"></exception>
+        /// <exception cref="EventNotFoundedException"></exception>
         /// <exception cref="BookingBusinessException"></exception>
         public async Task<BookingDTO> CreateBookingAsync(Guid eventId, CancellationToken token = default)
         {
@@ -40,7 +40,7 @@ namespace EventManagement.Services
                 //Впоследствии репозиторий может (и должен) быть дописан с мспользованием асинхронных методов
 
                 var evt = _repositoryEvent.GetById(eventId);
-                if (evt == null) throw new EventNotFoundedExсeption(eventId);
+                if (evt == null) throw new EventNotFoundedException(eventId);
                 if (evt.StartAt <= DateTime.UtcNow) throw new BookingBusinessException("Невозможно создать бронь для мероприятия, которое началось");
 
 
@@ -67,8 +67,8 @@ namespace EventManagement.Services
         /// <summary>
         /// Получить мероприятие по идентификатору
         /// </summary>
-        /// <param name="bookingId">Идентификатор мероприятия</param>
-        /// <param name="token"></param>
+        /// <param name="bookingId">Идентификатор брони</param>
+        /// <param name="token">Токен отмены</param>
         /// <returns></returns>
         /// <exception cref="BookingNotFoundedException"></exception>
         public async Task<BookingDTO> GetBookingByIdAsync(Guid bookingId, CancellationToken token = default)

@@ -13,8 +13,12 @@ namespace EventManagement.Context
     /// <summary>
     /// Репозиторий бронирований
     /// </summary>
-    public class InMemoryBooking : IRepository<Booking>
+    public class InMemoryBooking : IBookingRepository
     {
+        private const int randomSetConfirmed = 100;
+        private const int randomSetProcessed = 55;
+        private const int fakerSeed = 8675309;
+        private const int generateCount = 50;
         private readonly Lock _lock;
         private readonly IRepository<Event> _eventRepository;
         private List<Booking> _bookings;
@@ -26,31 +30,28 @@ namespace EventManagement.Context
         {
 
             _lock = new();
-            _bookings = new();
             _eventRepository = eventRepository;
-            Randomizer.Seed = new Random(8675309);
-
-            var eventData = _eventRepository.GetAll().ToArray();
+            var eventData = _eventRepository.GetAll().Where(a => a.StartAt > DateTime.UtcNow).ToArray();
+            if (eventData.Length == 0) { _bookings = new(); return; }
             var test_data = new Faker<Booking>().CustomInstantiator((f) =>
             {
 
-                var createdAt = f.Date.Between(DateTime.Now.AddDays(-365), DateTime.Now.AddDays(365));
-                var random1 = f.Random.Int(50, 150);
+                var randomInt = f.Random.Int(50, 150);
 
-                var random2 = f.Random.Int(0, eventData.Length-1);
+                var randomEventIndex = f.Random.Int(0, eventData.Length - 1);
 
-                var eventId = eventData[random2].Id;
+                var eventId = eventData[randomEventIndex].Id;
+                var createdAt = DateTime.UtcNow.AddMinutes(-f.Random.Int(1, 5));
                 var status = BookingStatus.Pending;
 
-                var processedAt = random1>55 ? createdAt.AddMinutes(f.Random.Int(1, 5)) : (DateTime?)default;
+                var processedAt = randomInt > randomSetProcessed ? createdAt.AddMinutes(f.Random.Int(1, 5)) : (DateTime?)default;
                 if (processedAt.HasValue)
                 {
-                    status = random2 > 100 ? BookingStatus.Confirmed : BookingStatus.Rejected;
+                    status = randomInt > randomSetConfirmed ? BookingStatus.Confirmed : BookingStatus.Rejected;
                 }
-                return new Booking(Guid.NewGuid(), status, eventId, createdAt, processedAt);
+                return new Booking(f.Random.Guid(), status, eventId, createdAt, processedAt);
             });
-
-            _bookings = test_data.UseSeed(8675309).Generate(50).OrderByDescending(u => u.ProcessedAt).ToList();
+            _bookings = test_data.UseSeed(fakerSeed).Generate(generateCount).OrderByDescending(u => u.ProcessedAt).ToList();
 
         }
         /// <summary>
@@ -114,7 +115,12 @@ namespace EventManagement.Context
         {
             using (_lock.EnterScope())
             {
-                return _bookings.FirstOrDefault(a => a.Id == id);
+               var booking=_bookings.FirstOrDefault(a => a.Id == id);
+                if (booking != null)
+                {
+                    return new Booking(booking.Id, booking.Status, booking.EventId, booking.CreatedAt, booking.ProcessedAt);
+                }
+                else return null;
             }
 
         }
@@ -131,6 +137,41 @@ namespace EventManagement.Context
                 {
                     _bookings.Remove(bookingItem);
                 }
+            }
+        }
+        /// <summary>
+        /// Подтверждение брони
+        /// </summary>
+        /// <param name="id"></param>
+        public Booking? Confirm(Guid id)
+        {
+            using (_lock.EnterScope())
+            {
+                var bookingItem = _bookings.FirstOrDefault(e => e.Id == id);
+                if (bookingItem != null && bookingItem.Status == BookingStatus.Pending)
+                {
+                    bookingItem.Confirm();
+                    return new Booking(bookingItem.Id, bookingItem.Status, bookingItem.EventId, bookingItem.CreatedAt, bookingItem.ProcessedAt);
+
+                }
+                else return null;
+            }
+        }
+        /// <summary>
+        /// Отмена брони
+        /// </summary>
+        /// <param name="id"></param>
+        public Booking? Reject(Guid id)
+        {
+            using (_lock.EnterScope())
+            {
+                var bookingItem = _bookings.FirstOrDefault(e => e.Id == id);
+                if (bookingItem != null && bookingItem.Status == BookingStatus.Pending)
+                {
+                    bookingItem.Reject();
+                    return new Booking(bookingItem.Id, bookingItem.Status, bookingItem.EventId, bookingItem.CreatedAt, bookingItem.ProcessedAt);
+                }
+                else return null;
             }
         }
     }
