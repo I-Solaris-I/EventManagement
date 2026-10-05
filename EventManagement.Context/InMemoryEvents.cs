@@ -10,26 +10,36 @@ using System.Threading.Tasks;
 
 namespace EventManagement.Context
 {
+    /// <summary>
+    /// Репозиторий мероприятий
+    /// </summary>
     public class InMemoryEvents : IRepository<Event>
     {
+        private const int fakerSeed = 8675309;
+        private const int generateCount = 100;
+        private const int randomSetDescriprion = 30;
         private readonly Lock _lock;
 
         private List<Event> _events;
+        /// <summary>
+        /// Конструктор
+        /// </summary>
         public InMemoryEvents()
         {
             _lock = new();
-            _events = new();
-            Randomizer.Seed = new Random(8675309);
             var test_data = new Faker<Event>().CustomInstantiator((f) =>
-            {
-                var startAt = f.Date.Between(DateTime.Now.AddDays(-365), DateTime.Now.AddDays(365));
-                var endAt = startAt.AddHours(f.Random.Int(1, 24));
-                return new Event(Guid.NewGuid(), f.Lorem.Sentence(), startAt, endAt, f.Random.Number(0, 100) > 30 ? f.Lorem.Paragraph() : null);
-            });
-
-            _events = test_data.UseSeed(8675309).Generate(100).OrderByDescending(u => u.StartAt).ToList();
+              {
+                  var startAt = f.Date.Between(DateTime.UtcNow.AddDays(-365), DateTime.UtcNow.AddDays(365));
+                  var endAt = startAt.AddHours(f.Random.Int(1, 24));
+                  return new Event(f.Random.Guid(), f.Lorem.Sentence(), startAt, endAt, f.Random.Number(0, 100) > randomSetDescriprion ? f.Lorem.Paragraph() : null);
+              });
+            _events = test_data.UseSeed(fakerSeed).Generate(generateCount).OrderByDescending(u => u.StartAt).ToList();
 
         }
+        /// <summary>
+        /// Создание мероприятия
+        /// </summary>
+        /// <param name="data">Данные для создания</param>
         public void Create(Event data)
         {
             using (_lock.EnterScope())
@@ -38,6 +48,10 @@ namespace EventManagement.Context
             }
 
         }
+        /// <summary>
+        /// Обновление мероприятия
+        /// </summary>
+        /// <param name="data">Данные для обновления</param>
         public void Update(Event data)
         {
             using (_lock.EnterScope())
@@ -50,7 +64,11 @@ namespace EventManagement.Context
                 }
             }
         }
-
+        /// <summary>
+        /// Проверить, существует ли мероприятие без его возврата
+        /// </summary>
+        /// <param name="id">Идентификатор мероприятия</param>
+        /// <returns></returns>
         public bool IsExist(Guid id)
         {
             using (_lock.EnterScope())
@@ -58,7 +76,10 @@ namespace EventManagement.Context
                 return _events.Any(a => a.Id == id);
             }
         }
-
+        /// <summary>
+        /// Получить все мероприятия
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<Event> GetAll()
         {
             using (_lock.EnterScope())
@@ -66,16 +87,28 @@ namespace EventManagement.Context
                 return _events.ToList();
             }
         }
-
+        /// <summary>
+        /// Получение мероприятия по идентификатору
+        /// </summary>
+        /// <param name="id">Идентификатор мероприятия</param>
+        /// <returns></returns>
         public Event? GetById(Guid id)
         {
             using (_lock.EnterScope())
             {
-                return _events.FirstOrDefault(a => a.Id == id);
+                var evt= _events.FirstOrDefault(a => a.Id == id);
+                if (evt != null)
+                {
+                    return new Event(evt.Id, evt.Title, evt.StartAt, evt.EndAt, evt.Description);
+                }
+                else return null;
             }
 
         }
-
+        /// <summary>
+        /// Удаление мероприятия
+        /// </summary>
+        /// <param name="id">Идентификатор мероприятия</param>
         public void Delete(Guid id)
         {
             using (_lock.EnterScope())
