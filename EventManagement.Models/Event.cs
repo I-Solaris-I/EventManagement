@@ -126,11 +126,13 @@ namespace EventManagement.Models
         /// <param name="startAt">Дата начала</param>
         /// <param name="endAt">Дата конца</param>
         /// <param name="totalSeats">Число мест для бронирования события</param>
+        /// <param name="availableSeats">Доступное число мест для бронирования события</param>
         /// <param name="description">Описание</param>
         public Event(Guid id, string title, DateTime startAt, DateTime endAt, int totalSeats, int availableSeats, string? description = null) : this(title, startAt, endAt, totalSeats, description)
         {
             Id = id;
             if (availableSeats > totalSeats) throw new ArgumentException($"Достуное количество мест для бронирования не может превышать макимальное", paramName: nameof(availableSeats));
+            if (availableSeats < 0) throw new ArgumentException($"Достуное количество мест для бронирования не может быть меньше 0", paramName: nameof(availableSeats));
 
             AvailableSeats = availableSeats;
         }
@@ -141,7 +143,7 @@ namespace EventManagement.Models
         /// <param name="title">Наименование</param>
         /// <param name="startAt">Дата начала</param>
         /// <param name="endAt">Дата конца</param>
-        /// <param name="totalSeats">Число мест для бронирования события</param
+        /// <param name="totalSeats">Число мест для бронирования события</param>
         /// <param name="description">Описание</param>
         /// <exception cref="ArgumentException"></exception>
         public Event(string title, DateTime startAt, DateTime endAt, int totalSeats, string? description = null)
