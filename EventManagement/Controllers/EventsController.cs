@@ -66,6 +66,7 @@ namespace EventManagement.Controllers
         /// <response code="202">Бронь создана, ожидает обработки</response>
         /// <response code="400">Мероприятие уже началось, бронирование невозможно</response>
         /// <response code="404">Мероприятие не найдено, бронирование невозможно</response>
+        /// <response code="409">У мероприятия недостаточно свободных мест для бронирования</response>
 
         [HttpPost("{id}/book")]
         public async Task<ActionResult<BookingDTO>> CreateBooking([FromRoute] Guid id, CancellationToken ct)

@@ -45,6 +45,44 @@ namespace EventManagement.Models
         }
 
     }
+
+    /// <summary>
+    /// Исключение для отстутствующего мероприятия
+    /// </summary>
+    public class EventNoAvailableSeatsException : Exception
+    {
+        /// <summary>
+        /// Идентификатор мероприятия с нехваткой мест
+        /// </summary>
+        public Guid EventId { get; private set; }
+        /// <summary>
+        /// Конструктор
+        /// </summary>
+        /// <param name="Id">Идентификатор мероприятия с нехваткой мест</param>
+        public EventNoAvailableSeatsException(Guid Id) : base($"Нет доступных мест для мероприятия c Id={Id}")
+        {
+            EventId = Id;
+        }
+        /// <summary>
+        /// Конструктор
+        /// </summary>
+        /// <param name="Id">Идентификатор мероприятия с нехваткой мест</param>
+        /// <param name="message">Сообщение</param>
+        public EventNoAvailableSeatsException(Guid Id, string? message) : base(message)
+        {
+            EventId = Id;
+        }
+        /// <summary>
+        ///  Конструктор
+        /// </summary>
+        /// <param name="Id">Идентификатор мероприятия с нехваткой мест</param>
+        /// <param name="message">Сообщение</param>
+        /// <param name="innerException">Вложенное исключение</param>
+        public EventNoAvailableSeatsException(Guid Id, string? message, Exception? innerException) : base(message, innerException)
+        {
+            EventId = Id;
+        }
+    }
     /// <summary>
     /// Мероприятие (Доменная модель)
     /// </summary>

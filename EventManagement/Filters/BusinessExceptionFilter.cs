@@ -72,6 +72,13 @@ namespace EventManagement.Filters
 
             switch (context.Exception)
             {
+                case EventNoAvailableSeatsException enase:
+                    _logger.LogWarning(enase, "Event No Available Seats Exception, EventId={EventId}, Method={Method}, Path={Path}",
+                        enase.EventId,
+                        httpContext.Request.Method,
+                        httpContext.Request.Path);
+                    HandleProblemDetail(context, StatusCodes.Status409Conflict, "Conflict", enase.Message);
+                    break;
 
                 case EventNotFoundedException enf:
                     _logger.LogWarning(enf, "Event not founded exception, EventId={EventId}, Method={Method}, Path={Path}",

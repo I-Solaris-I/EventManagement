@@ -7,6 +7,7 @@ namespace EventManagement.Services
 {
     public class BookingService : IBookingService
     {
+        private readonly static object _bookingLock = new object();
         private readonly IBookingRepository _repositoryBooking;
         private readonly IRepository<Event> _repositoryEvent;
         private readonly ILogger<BookingService> _logger;
@@ -29,22 +30,30 @@ namespace EventManagement.Services
         /// <param name="token">Токен отмены</param>
         /// <returns></returns>
         /// <exception cref="EventNotFoundedException"></exception>
+        /// <exception cref="EventNoAvailableSeatsException"></exception>
         /// <exception cref="BookingBusinessException"></exception>
         public async Task<BookingDTO> CreateBookingAsync(Guid eventId, CancellationToken token = default)
         {
             try
             {
                 _logger.LogInformation($"Вызван метод {nameof(CreateBookingAsync)}");
+                Booking booking;
 
+                lock (_bookingLock)
+                {
                 var evt = _repositoryEvent.GetById(eventId);
                 if (evt == null) throw new EventNotFoundedException(eventId);
                 if (evt.StartAt <= DateTime.UtcNow) throw new BookingBusinessException("Невозможно создать бронь для мероприятия, которое началось");
-
-                var booking = new Booking(eventId);
+                    if (!evt.TryReserveSeats())
+                        throw new EventNoAvailableSeatsException(eventId);
+                    _repositoryEvent.Update(evt);
+                    booking = new Booking(eventId);
                 _repositoryBooking.Create(booking);
 
-                _logger.LogInformation($"Бронь с Id {booking.Id}, статус: {booking.Status.ToString()}");
-                return BookingDTO.GetModel(booking);
+                }
+
+                _logger.LogInformation($"Создана бронь с Id {booking.Id}, статус: {booking.Status.ToString()}");
+                return await Task.FromResult(BookingDTO.GetModel(booking));
 
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested)
