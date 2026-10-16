@@ -17,6 +17,7 @@ namespace EventManagement.Tests
                 "Illum eum beatae et.",
                 DateTime.UtcNow.AddDays(5),
                 DateTime.UtcNow.AddDays(5).AddHours(5),
+                5,5,
             "Saepe alias rerum repellendus exercitationem ipsam suscipit"
             ),
             new Event(
@@ -24,6 +25,7 @@ namespace EventManagement.Tests
                 "Aut vel aut repellat aut pariatur exercitationem neque qui in.",
                DateTime.UtcNow.AddDays(5),
                 DateTime.UtcNow.AddDays(5).AddHours(5),
+                5,5,
                 null
             ),
             new Event(
@@ -31,6 +33,7 @@ namespace EventManagement.Tests
                 "Illum et iste mollitia.",
                   DateTime.UtcNow.AddDays(5),
                 DateTime.UtcNow.AddDays(5).AddHours(5),
+                   5,5,
                 "Voluptatum doloremnon voluptatem odio maiores minus. Amet nisi est recusandae veniam quasi maxime. Natus alias pariatur eos magni. Hic quo ipsa suscipit voluptas magni nobis et rerum. Et autem quo quaerat eius. Tenetur voluptatem culpa provident."
             ),
             new Event(
@@ -38,18 +41,21 @@ namespace EventManagement.Tests
                 "Inventore numquam quaerat iusto quos quis doloremque consequatur.",
                DateTime.UtcNow.AddDays(5),
                 DateTime.UtcNow.AddDays(5).AddHours(5),
+                   5,5,
                 null),
             new Event(
                 Guid.Parse("416466f1-60c1-4897-b414-dd476652ed08"),
                 "Error expedita id fugiat ipsam quod et corporis omnis.",
                 DateTime.UtcNow.AddDays(5),
                 DateTime.UtcNow.AddDays(5).AddHours(5),
+                   5,5,
                 null),
             new Event(
                 Guid.Parse("73e4bdc1-d9e0-4cce-8a8d-650ceaf0ad72"),
                 "Numquam suscipit labore aliquid magni non ratione consequatur aut maiores.",
                 DateTime.UtcNow.AddDays(5),
                 DateTime.UtcNow.AddDays(5).AddHours(5),
+                   5,5,
                 null)];
         public InMemoryBooking BookingRepository { get; set; }
 

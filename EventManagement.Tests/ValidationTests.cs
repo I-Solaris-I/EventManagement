@@ -27,7 +27,7 @@ namespace EventManagement.Tests
             var title = string.Empty;
             var startAt = DateTime.Parse("2026-09-09");
             var endAt = DateTime.Parse("2025-09-10");
-            var model = new CreateUpdateEventDTO(title, startAt, endAt);
+            var model = new CreateUpdateEventDTO(title, startAt, endAt, 10);
             //Act
             var result = validatorCUE.TestValidate(model);
             //Assert
@@ -43,7 +43,7 @@ namespace EventManagement.Tests
             var title = "Новое мероприятие";
             var startAt = DateTime.Parse("2026-09-09");
             var endAt = DateTime.Parse("2025-03-05");
-            var model = new CreateUpdateEventDTO(title, startAt, endAt);
+            var model = new CreateUpdateEventDTO(title, startAt, endAt,10);
             //Act
             var result = validatorCUE.TestValidate(model);
             //Assert
@@ -60,7 +60,7 @@ namespace EventManagement.Tests
             var title = "Новое мероприятие";
             var startAt = DateTime.MinValue;
             var endAt = DateTime.Parse("2026-03-05");
-            var model = new CreateUpdateEventDTO(title, startAt, endAt);
+            var model = new CreateUpdateEventDTO(title, startAt, endAt,10);
             //Act
             var result = validatorCUE.TestValidate(model);
             //Assert
@@ -72,7 +72,7 @@ namespace EventManagement.Tests
         public void CreateUpdateEventDTO_CorrectValues_ShouldNotHaveAnyValidationError()
         {
             //Arrange
-            var model = new CreateUpdateEventDTO("Новое мероприятие", DateTime.Parse("2025-03-04"), DateTime.Parse("2025-03-05"));
+            var model = new CreateUpdateEventDTO("Новое мероприятие", DateTime.Parse("2025-03-04"), DateTime.Parse("2025-03-05"),10);
             //Act
             var result = validatorCUE.TestValidate(model);
             //Assert
