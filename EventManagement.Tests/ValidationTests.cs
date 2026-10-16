@@ -34,6 +34,26 @@ namespace EventManagement.Tests
             result.ShouldHaveValidationErrorFor(a => a.Title);
         }
 
+        [Theory]
+        [InlineData(-100)]
+        [InlineData(-1)]
+        [InlineData(0)]
+        [Trait("Category", nameof(CreateUpdateEventDTOValidation))]
+
+        public void CreateUpdateEventDTO_TotalSeats_LessThanOne_ShouldHaveValidationError(int totalSeats)
+        {
+            //Arrange
+            var title = "Название";
+            var startAt = DateTime.UtcNow;
+            var endAt = DateTime.UtcNow.AddHours(1);
+            var model = new CreateUpdateEventDTO(title, startAt, endAt, totalSeats);
+            //Act
+            var result = validatorCUE.TestValidate(model);
+            //Assert
+            result.ShouldHaveValidationErrorFor(a => a.TotalSeats);
+        }
+
+
         [Fact]
         [Trait("Category", nameof(CreateUpdateEventDTOValidation))]
         public void CreateUpdateEventDTO_EndAt_EarlierThanStartAt_ShouldHaveValidationError()
