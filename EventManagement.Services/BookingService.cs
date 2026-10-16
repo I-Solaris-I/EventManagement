@@ -7,6 +7,9 @@ namespace EventManagement.Services
 {
     public class BookingService : IBookingService
     {
+        private readonly static object _bookingLock = new object();
+        private readonly static SemaphoreSlim _bookingSemaphore = new(1, 1);
+
         private readonly IBookingRepository _repositoryBooking;
         private readonly IRepository<Event> _repositoryEvent;
         private readonly ILogger<BookingService> _logger;
@@ -29,22 +32,30 @@ namespace EventManagement.Services
         /// <param name="token">Токен отмены</param>
         /// <returns></returns>
         /// <exception cref="EventNotFoundedException"></exception>
+        /// <exception cref="EventNoAvailableSeatsException"></exception>
         /// <exception cref="BookingBusinessException"></exception>
         public async Task<BookingDTO> CreateBookingAsync(Guid eventId, CancellationToken token = default)
         {
             try
             {
                 _logger.LogInformation($"Вызван метод {nameof(CreateBookingAsync)}");
+                Booking booking;
 
-                var evt = _repositoryEvent.GetById(eventId);
-                if (evt == null) throw new EventNotFoundedException(eventId);
-                if (evt.StartAt <= DateTime.UtcNow) throw new BookingBusinessException("Невозможно создать бронь для мероприятия, которое началось");
+                lock (_bookingLock)
+                {
+                    var evt = _repositoryEvent.GetById(eventId);
+                    if (evt == null) throw new EventNotFoundedException(eventId);
+                    if (evt.StartAt <= DateTime.UtcNow) throw new BookingBusinessException("Невозможно создать бронь для мероприятия, которое началось");
+                    if (!evt.TryReserveSeats())
+                        throw new EventNoAvailableSeatsException(eventId);
+                    _repositoryEvent.Update(evt);
+                    booking = new Booking(eventId);
+                    _repositoryBooking.Create(booking);
 
-                var booking = new Booking(eventId);
-                _repositoryBooking.Create(booking);
+                }
 
-                _logger.LogInformation($"Бронь с Id {booking.Id}, статус: {booking.Status.ToString()}");
-                return BookingDTO.GetModel(booking);
+                _logger.LogInformation($"Создана бронь с Id {booking.Id}, статус: {booking.Status.ToString()}");
+                return await Task.FromResult(BookingDTO.GetModel(booking));
 
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested)
@@ -84,6 +95,7 @@ namespace EventManagement.Services
                 throw;
             }
         }
+        private const int _delayApiSec = 2;
 
         /// <summary>
         /// Обработка созданной брони
@@ -92,13 +104,15 @@ namespace EventManagement.Services
         /// <param name="token">Токен отмены</param>
         /// <returns></returns>
         /// <exception cref="BookingNotFoundedException"></exception>
-        /// <exception cref="BookingNotFoundedException"></exception>
+        /// <exception cref="BookingBusinessException"></exception>
         /// <exception cref="InvalidOperationException"></exception>
         public async Task<BookingDTO> ProcessPendingBookingAsync(Guid bookingId, CancellationToken token = default)
         {
+            _logger.LogInformation($"Вызван метод {nameof(ProcessPendingBookingAsync)}");
+            await Task.Delay(TimeSpan.FromSeconds(_delayApiSec));
+            await _bookingSemaphore.WaitAsync(token);
             try
             {
-                _logger.LogInformation($"Вызван метод {nameof(ProcessPendingBookingAsync)}");
 
                 var booking = _repositoryBooking.GetById(bookingId);
                 if (booking == null) throw new BookingNotFoundedException(bookingId);
@@ -108,9 +122,18 @@ namespace EventManagement.Services
 
                 var evt = _repositoryEvent.GetById(booking.EventId);
                 if (evt == null)
+                {
                     booking = _repositoryBooking.Reject(booking.Id);
+                    _logger.LogWarning("Мероприятие {EventId} не найдено, бронь {bookingId} отменена", booking?.EventId, booking?.Id);
+                }
                 else if (evt.StartAt <= DateTime.UtcNow)
+                {
                     booking = _repositoryBooking.Reject(booking.Id);
+                    evt.ReleaseSeats();
+                    _repositoryEvent.Update(evt);
+                    _logger.LogWarning("Мероприятие {EventId} уже началось, бронь {bookingId} отменена", booking?.EventId, booking?.Id);
+
+                }
                 else booking = _repositoryBooking.Confirm(booking.Id);
 
                 if (booking == null) throw new InvalidOperationException("Не получена бронь с изменённым статусом");
@@ -122,6 +145,10 @@ namespace EventManagement.Services
             {
                 _logger.LogInformation($"Метод {nameof(ProcessPendingBookingAsync)} отменён");
                 throw;
+            }
+            finally
+            {
+                _bookingSemaphore.Release();
             }
         }
     }

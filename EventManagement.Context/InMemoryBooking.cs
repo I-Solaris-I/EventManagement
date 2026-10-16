@@ -48,6 +48,11 @@ namespace EventManagement.Context
                 if (processedAt.HasValue)
                 {
                     status = randomInt > randomSetConfirmed ? BookingStatus.Confirmed : BookingStatus.Rejected;
+                    if (status == BookingStatus.Confirmed)
+                    {
+                        eventData[randomEventIndex].TryReserveSeats();
+                        _eventRepository.Update(eventData[randomEventIndex]);
+                    }
                 }
                 return new Booking(f.Random.Guid(), status, eventId, createdAt, processedAt);
             });
@@ -115,7 +120,7 @@ namespace EventManagement.Context
         {
             using (_lock.EnterScope())
             {
-               var booking=_bookings.FirstOrDefault(a => a.Id == id);
+                var booking = _bookings.FirstOrDefault(a => a.Id == id);
                 if (booking != null)
                 {
                     return new Booking(booking.Id, booking.Status, booking.EventId, booking.CreatedAt, booking.ProcessedAt);
@@ -172,6 +177,14 @@ namespace EventManagement.Context
                     return new Booking(bookingItem.Id, bookingItem.Status, bookingItem.EventId, bookingItem.CreatedAt, bookingItem.ProcessedAt);
                 }
                 else return null;
+            }
+        }
+
+        public IEnumerable<Booking> GetPending()
+        {
+            using (_lock.EnterScope())
+            {
+                return _bookings.Where(a => a.Status == BookingStatus.Pending).ToList();
             }
         }
     }

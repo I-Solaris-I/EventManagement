@@ -19,6 +19,8 @@ namespace EventManagement.Context.Interfaces
 
     public interface IBookingRepository : IRepository<Booking>
     {
+        IEnumerable<Booking> GetPending();
+
         Booking? Confirm(Guid id);
         Booking? Reject(Guid id);
     }
