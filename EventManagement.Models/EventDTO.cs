@@ -56,11 +56,11 @@ namespace EventManagement.Models
             RuleFor(x => x.StartAt)
                 .NotEmpty()
                .WithMessage("Не указана дата начала мероприятия");
-            RuleFor(x => x.TotalSeats).Must(x => x > 0).WithMessage("Число мест для бронирования должно быть неотрицательным");
+            RuleFor(x => x.TotalSeats).Must(x => x > 0).WithMessage("Количество мест для бронирования должно быть положительным");
             RuleFor(x => x.EndAt)
                .NotEmpty()
                .WithMessage("Не указана дата окончания мероприятия");
-            RuleFor(x => x.EndAt).GreaterThan(x => x.StartAt).WithMessage((x) => $"Дата окончания мероприятия {x.EndAt} должна быть больше даты начала мероприяти {x.StartAt}");
+            RuleFor(x => x.EndAt).GreaterThan(x => x.StartAt).WithMessage((x) => $"Дата окончания мероприятия {x.EndAt} должна быть больше даты начала мероприятия {x.StartAt}");
         }
 
     }

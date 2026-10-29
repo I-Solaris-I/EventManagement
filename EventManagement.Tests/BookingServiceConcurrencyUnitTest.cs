@@ -48,6 +48,7 @@ namespace EventManagement.Tests
             var faultedQty = tasks.Count(a => a.IsFaulted);
             var exseptions = tasks.Where(a => a.IsFaulted).Select(a => a.Exception!.InnerException).ToList();
             Assert.Equal(10, cmlQty);
+            Assert.Equal(0, _eventRepository.GetById(evt.Id)!.AvailableSeats);
             Assert.Equal(tasks.Count, cmlQty + faultedQty);
             Assert.All(exseptions, ex => Assert.IsType<EventNoAvailableSeatsException>(ex));
         }

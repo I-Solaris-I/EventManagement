@@ -111,16 +111,18 @@ namespace EventManagement.Services
             _logger.LogInformation($"Вызван метод {nameof(ProcessPendingBookingAsync)}");
             await Task.Delay(TimeSpan.FromSeconds(_delayApiSec));
             await _bookingSemaphore.WaitAsync(token);
+            Booking? booking = null;
+            Event? evt = null;
             try
             {
 
-                var booking = _repositoryBooking.GetById(bookingId);
+                booking = _repositoryBooking.GetById(bookingId);
                 if (booking == null) throw new BookingNotFoundedException(bookingId);
 
 
                 if (booking.Status != BookingStatus.Pending) throw new BookingBusinessException($"Метод обрабатывает только бронирования в статусе {BookingStatus.Pending.ToString()}");
 
-                var evt = _repositoryEvent.GetById(booking.EventId);
+                evt = _repositoryEvent.GetById(booking.EventId);
                 if (evt == null)
                 {
                     booking = _repositoryBooking.Reject(booking.Id);
@@ -144,6 +146,23 @@ namespace EventManagement.Services
             catch (OperationCanceledException) when (token.IsCancellationRequested)
             {
                 _logger.LogInformation($"Метод {nameof(ProcessPendingBookingAsync)} отменён");
+                throw;
+            }
+            catch (BookingBusinessException)
+            {
+                throw;
+            }
+            catch (Exception)
+            {
+                if (booking != null)
+                {
+                    booking = _repositoryBooking.Reject(booking.Id);
+                }
+                if (evt != null)
+                {
+                    evt.ReleaseSeats();
+                    _repositoryEvent.Update(evt);
+                }
                 throw;
             }
             finally

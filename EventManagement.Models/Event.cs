@@ -149,7 +149,7 @@ namespace EventManagement.Models
         public Event(string title, DateTime startAt, DateTime endAt, int totalSeats, string? description = null)
         {
             if (endAt <= startAt) throw new ArgumentException($"Дата окончания мероприятия {endAt} должна быть больше даты начала мероприяти {startAt}", paramName: nameof(endAt));
-            if (totalSeats <= 0) throw new ArgumentException($"Количество мест для бронирования должно быть неотрицательным", paramName: nameof(totalSeats));
+            if (totalSeats <= 0) throw new ArgumentException($"Количество мест для бронирования должно быть положительным", paramName: nameof(totalSeats));
 
             Id = Guid.NewGuid();
             Title = title;
