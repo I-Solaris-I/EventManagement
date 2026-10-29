@@ -1,7 +1,6 @@
 ﻿using EventManagement.Context.Interfaces;
 using EventManagement.Models;
 using EventManagement.Services.Interfaces;
-using Microsoft.OpenApi;
 
 namespace EventManagement.Services
 {
@@ -10,7 +9,6 @@ namespace EventManagement.Services
     /// </summary>
     public class BookingBackgroundService : BackgroundService
     {
-        private const int _delayApiSec = 2;
         private const int _delaySecInWhile = 1;
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<BookingBackgroundService> _logger;
@@ -64,21 +62,27 @@ namespace EventManagement.Services
             var bookingRepository = scope.ServiceProvider.GetRequiredService<IBookingRepository>();
             var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
 
-            foreach (var bId in bookingRepository.GetAll().Where(a => a.Status == BookingStatus.Pending).Select(a => a.Id).ToArray())
+
+            var pendingBookings = bookingRepository.GetPending().Select(a => a.Id).ToArray();
+            var tasks = pendingBookings.Select(async (bId) =>
             {
                 try
                 {
-                    await Task.Delay(TimeSpan.FromSeconds(_delayApiSec));
-                    var updBooking = await bookingService.ProcessPendingBookingAsync(bId, stoppingToken);
+                    _logger.LogInformation("{BookingId} начало обработки {DateTime}", bId, DateTime.Now);
 
+                    var updBooking = await bookingService.ProcessPendingBookingAsync(bId, stoppingToken);
                     _logger.LogInformation("Cтатус брони {BookingId} изменён на {Status}", bId, updBooking.Status);
 
                 }
+                catch (OperationCanceledException) { }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
+
                     _logger.LogError(ex, "Исключение при обработке брони {BookingId}", bId);
+
                 }
-            }
+            });
+            await Task.WhenAll(tasks);
         }
     }
 }

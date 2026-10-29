@@ -31,7 +31,7 @@ namespace EventManagement.Context
               {
                   var startAt = f.Date.Between(DateTime.UtcNow.AddDays(-365), DateTime.UtcNow.AddDays(365));
                   var endAt = startAt.AddHours(f.Random.Int(1, 24));
-                  return new Event(f.Random.Guid(), f.Lorem.Sentence(), startAt, endAt, f.Random.Number(0, 100) > randomSetDescriprion ? f.Lorem.Paragraph() : null);
+                  return new Event(f.Random.Guid(), f.Lorem.Sentence(), startAt, endAt, 10, 10, f.Random.Number(0, 100) > randomSetDescriprion ? f.Lorem.Paragraph() : null);
               });
             _events = test_data.UseSeed(fakerSeed).Generate(generateCount).OrderByDescending(u => u.StartAt).ToList();
 
@@ -96,10 +96,10 @@ namespace EventManagement.Context
         {
             using (_lock.EnterScope())
             {
-                var evt= _events.FirstOrDefault(a => a.Id == id);
+                var evt = _events.FirstOrDefault(a => a.Id == id);
                 if (evt != null)
                 {
-                    return new Event(evt.Id, evt.Title, evt.StartAt, evt.EndAt, evt.Description);
+                    return new Event(evt.Id, evt.Title, evt.StartAt, evt.EndAt, evt.TotalSeats, evt.AvailableSeats, evt.Description);
                 }
                 else return null;
             }

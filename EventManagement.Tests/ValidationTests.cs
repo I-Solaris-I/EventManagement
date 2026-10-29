@@ -27,12 +27,32 @@ namespace EventManagement.Tests
             var title = string.Empty;
             var startAt = DateTime.Parse("2026-09-09");
             var endAt = DateTime.Parse("2025-09-10");
-            var model = new CreateUpdateEventDTO(title, startAt, endAt);
+            var model = new CreateUpdateEventDTO(title, startAt, endAt, 10);
             //Act
             var result = validatorCUE.TestValidate(model);
             //Assert
             result.ShouldHaveValidationErrorFor(a => a.Title);
         }
+
+        [Theory]
+        [InlineData(-100)]
+        [InlineData(-1)]
+        [InlineData(0)]
+        [Trait("Category", nameof(CreateUpdateEventDTOValidation))]
+
+        public void CreateUpdateEventDTO_TotalSeats_LessThanOne_ShouldHaveValidationError(int totalSeats)
+        {
+            //Arrange
+            var title = "Название";
+            var startAt = DateTime.UtcNow;
+            var endAt = DateTime.UtcNow.AddHours(1);
+            var model = new CreateUpdateEventDTO(title, startAt, endAt, totalSeats);
+            //Act
+            var result = validatorCUE.TestValidate(model);
+            //Assert
+            result.ShouldHaveValidationErrorFor(a => a.TotalSeats);
+        }
+
 
         [Fact]
         [Trait("Category", nameof(CreateUpdateEventDTOValidation))]
@@ -43,7 +63,7 @@ namespace EventManagement.Tests
             var title = "Новое мероприятие";
             var startAt = DateTime.Parse("2026-09-09");
             var endAt = DateTime.Parse("2025-03-05");
-            var model = new CreateUpdateEventDTO(title, startAt, endAt);
+            var model = new CreateUpdateEventDTO(title, startAt, endAt,10);
             //Act
             var result = validatorCUE.TestValidate(model);
             //Assert
@@ -60,7 +80,7 @@ namespace EventManagement.Tests
             var title = "Новое мероприятие";
             var startAt = DateTime.MinValue;
             var endAt = DateTime.Parse("2026-03-05");
-            var model = new CreateUpdateEventDTO(title, startAt, endAt);
+            var model = new CreateUpdateEventDTO(title, startAt, endAt,10);
             //Act
             var result = validatorCUE.TestValidate(model);
             //Assert
@@ -72,7 +92,7 @@ namespace EventManagement.Tests
         public void CreateUpdateEventDTO_CorrectValues_ShouldNotHaveAnyValidationError()
         {
             //Arrange
-            var model = new CreateUpdateEventDTO("Новое мероприятие", DateTime.Parse("2025-03-04"), DateTime.Parse("2025-03-05"));
+            var model = new CreateUpdateEventDTO("Новое мероприятие", DateTime.Parse("2025-03-04"), DateTime.Parse("2025-03-05"),10);
             //Act
             var result = validatorCUE.TestValidate(model);
             //Assert

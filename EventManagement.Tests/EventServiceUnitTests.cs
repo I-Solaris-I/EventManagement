@@ -25,6 +25,8 @@ namespace EventManagement.Tests
                 "Illum eum beatae et.",
                 DateTime.Parse("2025-09-19T01:14:01.1052829+03:00"),
                 DateTime.Parse("2025-09-19T16:14:01.1052829+03:00"),
+                10,
+                10,
             "Saepe alias rerum repellendus exercitationem ipsam suscipit"
             ),
             new Event(
@@ -32,6 +34,8 @@ namespace EventManagement.Tests
                 "Aut vel aut repellat aut pariatur exercitationem neque qui in.",
                 DateTime.Parse("2025-09-20T10:32:36.6775856+03:00"),
                 DateTime.Parse("2025-09-20T22:32:36.6775856+03:00"),
+                10,
+                10,
                 null
             ),
             new Event(
@@ -39,6 +43,8 @@ namespace EventManagement.Tests
                 "Illum et iste mollitia.",
                 DateTime.Parse("2025-09-22T10:48:15.0296976+03:00"),
                 DateTime.Parse("2025-09-22T11:48:15.0296976+03:00"),
+                10,
+                10,
                 "Voluptatum dolorem non voluptatem odio maiores minus. Amet nisi est recusandae veniam quasi maxime. Natus alias pariatur eos magni. Hic quo ipsa suscipit voluptas magni nobis et rerum. Et autem quo quaerat eius. Tenetur voluptatem culpa provident."
             ),
             new Event(
@@ -46,24 +52,32 @@ namespace EventManagement.Tests
                 "Inventore numquam quaerat iusto quos quis doloremque consequatur.",
                 DateTime.Parse("2025-09-29T09:55:28.956633+03:00"),
                 DateTime.Parse("2025-09-30T09:55:28.956633+03:00"),
+                10,
+                10,
                 null),
             new Event(
                 Guid.Parse("416466f1-60c1-4897-b414-dd476652ed08"),
                 "Error expedita id fugiat ipsam quod et corporis omnis.",
                 DateTime.Parse("2025-12-20T03:49:02.0584699+03:00"),
                 DateTime.Parse("2025-12-20T16:49:02.0584699+03:00"),
+                10,
+                10,
                 null),
             new Event(
                 Guid.Parse("73e4bdc1-d9e0-4cce-8a8d-650ceaf0ad72"),
                 "Numquam suscipit labore aliquid magni non ratione consequatur aut maiores.",
                 DateTime.Parse("2025-12-23T19:34:22.6389131+03:00"),
                 DateTime.Parse("2025-12-24T16:34:22.6389131+03:00"),
+                10,
+                10,
                 null),
             new Event(
                 Guid.Parse("ac11f9f0-258e-4a64-998a-2bd847712bf0"),
                 "Tempore soluta suscipit porro.",
                 DateTime.Parse("2025-12-31T05:42:56.9818145+03:00"),
                 DateTime.Parse("2025-12-31T16:42:56.9818145+03:00"),
+                10,
+                10,
                 "Alias veniam delectus quis sed dolores. Inventore et et eos qui qui ratione cumque pariatur. Tenetur enim totam quam voluptas soluta. Laudantium natus aspernatur. Dolorem vero aut non unde consequatur ut."
             ),
             new Event(
@@ -71,6 +85,8 @@ namespace EventManagement.Tests
                 "At omnis assumenda distinctio voluptas nihil.",
                 DateTime.Parse("2026-01-09T16:51:33.2872767+03:00"),
                 DateTime.Parse("2026-01-10T15:51:33.2872767+03:00"),
+                10,
+                10,
                 "Quos tenetur exercitationem nihil reiciendis. Est quos aperiam repellat. Ratione sunt dolorem ipsa pariatur ut facere. Ut sapiente quo voluptates sit tenetur. Nulla ex et fuga qui. Quia ducimus quidem est nisi quam sapiente."
             ),
             new Event(
@@ -78,6 +94,8 @@ namespace EventManagement.Tests
                 "Minus sunt sint",
                 DateTime.Parse("2026-01-24T13:06:00.5533601+03:00"),
                 DateTime.Parse("2026-01-24T22:06:00.5533601+03:00"),
+                10,
+                10,
                 null
             ),
             new Event(
@@ -85,6 +103,8 @@ namespace EventManagement.Tests
                 "Minus sunt sint1",
                 DateTime.Parse("2026-01-29T07:24:31.3202369+03:00"),
                 DateTime.Parse("2026-01-29T14:24:31.3202369+03:00"),
+                10,
+                10,
                 null
             ),
             new Event(
@@ -92,6 +112,8 @@ namespace EventManagement.Tests
                 "Minus sunt sint2",
                 DateTime.Parse("2026-02-06T15:54:08.4935775+03:00"),
                 DateTime.Parse("2026-02-06T22:54:08.4935775+03:00"),
+                10,
+                10,
                 "Eius illum modi aut expedita id accusamus iure. Eum et corrupti ut corrupti inventore. Quae officia iste mollitia fuga libero. Delectus mollitia sed."
             ),
             new Event(
@@ -99,6 +121,8 @@ namespace EventManagement.Tests
                 "Minus sunt sint3",
                 DateTime.Parse("2026-02-08T10:56:57.5048028+03:00"),
                 DateTime.Parse("2026-02-08T14:56:57.5048028+03:00"),
+                10,
+                10,
                 "Quas fugiat minima quia dolor sed molestiae earum eaque natus. Et id dignissimos nihil ipsa. Explicabo sit reiciendis omnis qui ipsum. Odio porro ratione. Magni dolore non itaque repudiandae quia voluptatem nulla atque. In aspernatur itaque quis omnis suscipit similique iste laudantium cumque."
             ),
             new Event(
@@ -106,6 +130,8 @@ namespace EventManagement.Tests
                 "Accusantium sunt cum laudantium quod consequatur laudantium possimus asperiores ea.",
                 DateTime.Parse("2026-02-08T19:14:38.4989543+03:00"),
                 DateTime.Parse("2026-02-09T08:14:38.4989543+03:00"),
+                10,
+                10,
                 "Aliquam qui consectetur necessitatibus et qui sunt. Repellat architecto quia. Accusamus consectetur et totam ratione."
             ),
             new Event(
@@ -113,6 +139,8 @@ namespace EventManagement.Tests
                 "Nisi voluptatum harum quibusdam dolorem.",
                 DateTime.Parse("2026-02-10T07:38:43.1405658+03:00"),
                 DateTime.Parse("2026-02-10T19:38:43.1405658+03:00"),
+                10,
+                10,
                 "Est assumenda quia autem ipsa quam hic tenetur. Praesentium eos tempore dolorem. Labore cumque autem accusantium necessitatibus libero occaecati ipsum aliquid. Tenetur rerum voluptatibus nesciunt nemo recusandae placeat voluptatem tempora suscipit. Velit nihil autem voluptatem molestiae deserunt asperiores rerum. Et qui molestias natus labore non nihil et aut."
             )
         ];
@@ -130,14 +158,21 @@ namespace EventManagement.Tests
 
             _validatorCUEMock = new Mock<IValidator<CreateUpdateEventDTO>>();
             _validatorEFMock = new Mock<IValidator<EventFilterDTO>>();
-
+        }
+        private EventService Sut(IRepository<Event>? repository = null, ILogger<EventService>? logger = null, IValidator<CreateUpdateEventDTO>? validatorCUE = null, IValidator<EventFilterDTO>? validatorEF = null)
+        {
+            return new EventService(
+                repository ?? _repositoryMock.Object,
+                logger ?? _loggerMock.Object,
+                validatorCUE ?? _validatorCUEMock.Object,
+                validatorEF ?? _validatorEFMock.Object);
         }
 
         [Fact]
         public void GetAllEvents_ShouldReturnAllExistingEvents()
         {
             //Arrange
-            var eventService = new EventService(_repositoryMock.Object, _loggerMock.Object, _validatorCUEMock.Object, _validatorEFMock.Object);
+            var eventService = Sut();
             //Act
             var result = eventService.GetAllEvents();
 
@@ -156,7 +191,7 @@ namespace EventManagement.Tests
         {
             //Arrange
             _validatorEFMock.Setup(a => a.Validate(It.IsAny<EventFilterDTO>())).Returns(new ValidationResult { });
-            var eventService = new EventService(_repositoryMock.Object, _loggerMock.Object, _validatorCUEMock.Object, _validatorEFMock.Object);
+            var eventService = Sut();
             //Act
             var result = eventService.GetFilteredEvents(new EventFilterDTO { Page = page, PageSize = pageSize });
             //Assert
@@ -176,7 +211,7 @@ namespace EventManagement.Tests
         {
             //Arrange
             var existingGuid = Guid.Parse("c9cfdfd8-e38d-4e0f-bcf2-bb20e6c632c0");
-            var eventService = new EventService(_repositoryMock.Object, _loggerMock.Object, _validatorCUEMock.Object, _validatorEFMock.Object);
+            var eventService = Sut();
             //Act
             var result = eventService.GetEventById(existingGuid);
             //Assert
@@ -190,7 +225,7 @@ namespace EventManagement.Tests
         {
             //Arrange
             var notExistingGuid = Guid.Parse("c2cfdfd8-e38d-4e0f-bcf2-bb3206c632c0");
-            var eventService = new EventService(_repositoryMock.Object, _loggerMock.Object, _validatorCUEMock.Object, _validatorEFMock.Object);
+            var eventService = Sut();
             //Act && Assert
             Assert.Throws<EventNotFoundedException>(() => eventService.GetEventById(notExistingGuid));
             _repositoryMock.Verify(a => a.GetById(It.IsAny<Guid>()), Times.Once);
@@ -204,12 +239,13 @@ namespace EventManagement.Tests
                 "Veritatis voluptatum rerum.",
                 DateTime.Parse("2025-11-02T05:01:05.8051311+03:00"),
                 DateTime.Parse("2026-11-02T06:01:05.8051311+03:00"),
+                10,
                 "Ducimus ea minus nam sit"
                 );
 
             _validatorCUEMock.Setup(x => x.Validate(model)).Returns(new ValidationResult());
 
-            var eventService = new EventService(_repositoryMock.Object, _loggerMock.Object, _validatorCUEMock.Object, _validatorEFMock.Object);
+            var eventService = Sut();
 
 
             //Act
@@ -237,12 +273,13 @@ namespace EventManagement.Tests
                         "Veritatis voluptsatum rerum.",
                         DateTime.Parse("2025-11-02T05:01:05.8051311+03:00"),
                         DateTime.Parse("2026-11-02T06:01:05.8051311+03:00"),
+                        10,
                         "Ducimus ea minus nam sit"
                         );
 
             _validatorCUEMock.Setup(x => x.Validate(model)).Returns(new ValidationResult());
 
-            var eventService = new EventService(_repositoryMock.Object, _loggerMock.Object, _validatorCUEMock.Object, _validatorEFMock.Object);
+            var eventService = Sut();
 
             //Act
             eventService.UpdateEvent(existedID, model);
@@ -264,17 +301,16 @@ namespace EventManagement.Tests
             //Arrange
 
             var notExistedGuid = Guid.Parse("c8cfafa8-e38d-4e0f-bcf2-bb20e6c632c0");
-
             var model = new CreateUpdateEventDTO(
                         "Veritatis voluptsatum rerum.",
                         DateTime.Parse("2025-11-02T05:01:05.8051311+03:00"),
                         DateTime.Parse("2026-11-02T06:01:05.8051311+03:00"),
+                        10,
                         "Ducimus ea minus nam sit"
                         );
 
             _validatorCUEMock.Setup(x => x.Validate(It.IsAny<CreateUpdateEventDTO>())).Returns(new ValidationResult());
-
-            var eventService = new EventService(_repositoryMock.Object, _loggerMock.Object, _validatorCUEMock.Object, _validatorEFMock.Object);
+            var eventService = Sut();
 
 
             //Act && Assert
@@ -289,8 +325,7 @@ namespace EventManagement.Tests
         {
             //Arrange
             var model = (CreateUpdateEventDTO?)default;
-
-            var eventService = new EventService(_repositoryMock.Object, _loggerMock.Object, _validatorCUEMock.Object, _validatorEFMock.Object);
+            var eventService = Sut();
 
 
             //Act && Assert
@@ -309,10 +344,8 @@ namespace EventManagement.Tests
         {
             //Arrange
             var filterText = "illum e";
-
             _validatorEFMock.Setup(x => x.Validate(It.IsAny<EventFilterDTO>())).Returns(new ValidationResult());
-
-            var eventService = new EventService(_repositoryMock.Object, _loggerMock.Object, _validatorCUEMock.Object, _validatorEFMock.Object);
+            var eventService = Sut();
 
             //Act
             var result = eventService.GetFilteredEvents(new EventFilterDTO(filterText));
@@ -335,10 +368,8 @@ namespace EventManagement.Tests
         public void GetFilteredEvents_AllFilters_ShouldHaveOnlyFilteredItems(string filterText, DateTime from, DateTime to)
         {
             //Arrange
-
             _validatorEFMock.Setup(x => x.Validate(It.IsAny<EventFilterDTO>())).Returns(new ValidationResult());
-
-            var eventService = new EventService(_repositoryMock.Object, _loggerMock.Object, _validatorCUEMock.Object, _validatorEFMock.Object);
+            var eventService = Sut();
 
             //Act
             var result = eventService.GetFilteredEvents(new EventFilterDTO(filterText, from, to));
@@ -353,9 +384,7 @@ namespace EventManagement.Tests
         {
             //Arrange
             var existedGuid = Guid.Parse("c9cfdfd8-e38d-4e0f-bcf2-bb20e6c632c0");
-
-
-            var eventService = new EventService(_repositoryMock.Object, _loggerMock.Object, _validatorCUEMock.Object, _validatorEFMock.Object);
+            var eventService = Sut();
 
             //Act
             eventService.RemoveEvent(existedGuid);
@@ -369,9 +398,7 @@ namespace EventManagement.Tests
         {
             //Arrange
             var notExistedGuid = Guid.Parse("c9cfdfd8-e38d-4e0f-baf2-bb20e6c632c0");
-
-
-            var eventService = new EventService(_repositoryMock.Object, _loggerMock.Object, _validatorCUEMock.Object, _validatorEFMock.Object);
+            var eventService = Sut();
 
             //Act && Assert
             Assert.Throws<EventNotFoundedException>(() => eventService.RemoveEvent(notExistedGuid));
@@ -383,7 +410,7 @@ namespace EventManagement.Tests
         public void CreateEvent_InvalidDate_ShouldThrowValidationExeption()
         {
             //Arrange
-            var dto = new CreateUpdateEventDTO("Новое мероприятие", DateTime.MinValue, DateTime.UtcNow);
+            var dto = new CreateUpdateEventDTO("Новое мероприятие", DateTime.MinValue, DateTime.UtcNow, 10);
             var eventService = new EventService(_repositoryMock.Object, _loggerMock.Object, new CreateUpdateEventDTOValidation(), _validatorEFMock.Object);
 
             //Act && Assert
@@ -395,7 +422,7 @@ namespace EventManagement.Tests
         {
             //Arrange
             var evt = _allEvents.First();
-            var updData = new CreateUpdateEventDTO("Новое название", DateTime.UtcNow, DateTime.MinValue);
+            var updData = new CreateUpdateEventDTO("Новое название", DateTime.UtcNow, DateTime.MinValue, 10);
             var eventService = new EventService(_repositoryMock.Object, _loggerMock.Object, new CreateUpdateEventDTOValidation(), _validatorEFMock.Object);
 
             //Act && Assert

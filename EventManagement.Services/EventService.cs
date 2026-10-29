@@ -33,12 +33,12 @@ namespace EventManagement.Services
             ILogger<EventService> logger,
             IValidator<CreateUpdateEventDTO> validatorCUE,
             IValidator<EventFilterDTO> validatorEF)
-            {
-                _repository = repository;
-                _validatorCUE = validatorCUE;
-                _validatorEF = validatorEF;
-                _logger = logger;
-            }
+        {
+            _repository = repository;
+            _validatorCUE = validatorCUE;
+            _validatorEF = validatorEF;
+            _logger = logger;
+        }
         /// <summary>
         /// Создание мероприятия
         /// </summary>
@@ -51,7 +51,7 @@ namespace EventManagement.Services
             _logger.LogInformation($"Вызван метод {nameof(CreateEvent)}");
             var result = _validatorCUE.Validate(model);
             if (!result.IsValid) throw new ValidationException(result.Errors);
-            var newEvent = new Event(model.Title, model.StartAt, model.EndAt, model.Description);
+            var newEvent = new Event(model.Title, model.StartAt, model.EndAt, model.TotalSeats, model.Description);
             _repository.Create(newEvent);
             _logger.LogInformation($"Мероприятия c {newEvent.Id} создано");
             return newEvent.Id;

@@ -45,13 +45,17 @@ namespace EventManagement.Tests
                 "Illum eum beatae et.",
                 DateTime.Parse("2035-09-30T01:14:01.1052829+03:00"),
                 DateTime.Parse("2035-09-30T16:14:01.1052829+03:00"),
-            "Saepe alias rerum repellendus exercitationem ipsam suscipit"
+                10,
+                10,
+                "Saepe alias rerum repellendus exercitationem ipsam suscipit"
             ),
             new Event(
                 Guid.Parse("c9cfdfd8-e38d-4e0f-bcf2-bb20e6c632c0"),
                 "Aut vel aut repellat aut pariatur exercitationem neque qui in.",
                 DateTime.Parse("2025-03-20T10:32:36.6775856+03:00"),
                 DateTime.Parse("2025-03-20T22:32:36.6775856+03:00"),
+                10,
+                10,
                 null
             ),
             new Event(
@@ -59,6 +63,8 @@ namespace EventManagement.Tests
                 "Illum et iste mollitia.",
                 DateTime.Parse("2025-11-22T10:48:15.0296976+03:00"),
                 DateTime.Parse("2025-11-22T11:48:15.0296976+03:00"),
+                10,
+                10,
                 "Voluptatum dolorem non voluptatem odio maiores minus. Amet nisi est recusandae veniam quasi maxime. Natus alias pariatur eos magni. Hic quo ipsa suscipit voluptas magni nobis et rerum. Et autem quo quaerat eius. Tenetur voluptatem culpa provident."
             ),
             new Event(
@@ -66,6 +72,8 @@ namespace EventManagement.Tests
                 "Inventore numquam quaerat iusto quos quis doloremque consequatur.",
                 DateTime.Parse("2025-12-29T09:55:28.956633+03:00"),
                 DateTime.Parse("2025-12-30T09:55:28.956633+03:00"),
+                10,
+                10,
                 null)];
 
         public BookingServiceUnitTests()
@@ -77,6 +85,13 @@ namespace EventManagement.Tests
             _repositoryEventMock.Setup(a => a.GetAll()).Returns(_allEvents);
         }
 
+        private BookingService Sut(IBookingRepository? bookingRepository = null, IRepository<Event>? eventRepository = null, ILogger<BookingService>? logger = null)
+        {
+            return new BookingService(
+                bookingRepository ?? _repositoryBookingMock.Object,
+                eventRepository ?? _repositoryEventMock.Object,
+                logger ?? _loggerMock.Object);
+        }
         [Fact]
         public async Task CreateBookingAsync_ExistEventId_ShouldReturnBookingInPending()
         {
@@ -84,7 +99,7 @@ namespace EventManagement.Tests
             var testGuid = _allEvents[0].Id;
             _repositoryEventMock.Setup(a => a.GetById(testGuid)).Returns(_allEvents[0]);
 
-            var bookingService = new BookingService(_repositoryBookingMock.Object, _repositoryEventMock.Object, _loggerMock.Object);
+            var bookingService = Sut();
             //Act
             var result = await bookingService.CreateBookingAsync(testGuid, TestContext.Current.CancellationToken);
 
@@ -104,7 +119,7 @@ namespace EventManagement.Tests
             var testGuid = _allEvents[0].Id;
             _repositoryEventMock.Setup(a => a.GetById(testGuid)).Returns(_allEvents[0]);
 
-            var bookingService = new BookingService(_repositoryBookingMock.Object, _repositoryEventMock.Object, _loggerMock.Object);
+            var bookingService = Sut();
             //Act
             var result1 = await bookingService.CreateBookingAsync(testGuid, TestContext.Current.CancellationToken);
             var result2 = await bookingService.CreateBookingAsync(testGuid, TestContext.Current.CancellationToken);
@@ -117,12 +132,12 @@ namespace EventManagement.Tests
 
         }
         [Fact]
-        public async Task CreateBookingAsync_NotExistingEventId_ShouldReturnEventNotFoundException()
+        public async Task CreateBookingAsync_NotExistingEventId_ShouldThrowEventNotFoundException()
         {
             //Arrange
             var testGuid = Guid.NewGuid();
             _repositoryEventMock.Setup(a => a.GetById(testGuid)).Returns((Event?)null);
-            var bookingService = new BookingService(_repositoryBookingMock.Object, _repositoryEventMock.Object, _loggerMock.Object);
+            var bookingService = Sut();
 
             //Act && Assert
             await Assert.ThrowsAsync<EventNotFoundedException>(() => bookingService.CreateBookingAsync(testGuid, TestContext.Current.CancellationToken));
@@ -136,7 +151,7 @@ namespace EventManagement.Tests
             var testGuid = _allEvents[1].Id;
             _repositoryEventMock.Setup(a => a.GetById(testGuid)).Returns(_allEvents[1]);
 
-            var bookingService = new BookingService(_repositoryBookingMock.Object, _repositoryEventMock.Object, _loggerMock.Object);
+            var bookingService = Sut();
 
             //Act && Assert
             await Assert.ThrowsAsync<BookingBusinessException>(() => bookingService.CreateBookingAsync(testGuid, TestContext.Current.CancellationToken));
@@ -149,7 +164,7 @@ namespace EventManagement.Tests
             var testGuid = _allBookings[0].Id;
             _repositoryBookingMock.Setup(a => a.GetById(testGuid)).Returns(_allBookings[0]);
 
-            var bookingService = new BookingService(_repositoryBookingMock.Object, _repositoryEventMock.Object, _loggerMock.Object);
+            var bookingService = Sut();
 
             //Act 
             var result = await bookingService.GetBookingByIdAsync(testGuid, TestContext.Current.CancellationToken);
@@ -170,7 +185,7 @@ namespace EventManagement.Tests
             _repositoryBookingMock
                 .Setup(x => x.GetById(bookingId))
                 .Returns((Booking?)null);
-            var bookingService = new BookingService(_repositoryBookingMock.Object, _repositoryEventMock.Object, _loggerMock.Object);
+            var bookingService = Sut();
 
             // Act & Assert
             await Assert.ThrowsAsync<BookingNotFoundedException>(
@@ -193,7 +208,7 @@ namespace EventManagement.Tests
             _repositoryBookingMock
                 .Setup(x => x.GetById(bookingId))
                 .Returns(booking);
-            var bookingService = new BookingService(_repositoryBookingMock.Object, _repositoryEventMock.Object, _loggerMock.Object);
+            var bookingService = Sut();
 
             // Act & Assert
             var exception = await Assert.ThrowsAsync<BookingBusinessException>(
@@ -236,7 +251,7 @@ namespace EventManagement.Tests
             _repositoryBookingMock
                 .Setup(x => x.Reject(bookingId))
                 .Returns(rejectedBooking);
-            var bookingService = new BookingService(_repositoryBookingMock.Object, _repositoryEventMock.Object, _loggerMock.Object);
+            var bookingService = Sut();
 
             // Act
             var result = await bookingService.ProcessPendingBookingAsync(bookingId, TestContext.Current.CancellationToken);
@@ -268,7 +283,7 @@ namespace EventManagement.Tests
                 DateTime.UtcNow,
                 null);
 
-            var evt = new Event(eventId, "Название", DateTime.UtcNow.AddMinutes(-10), DateTime.UtcNow.AddMinutes(-5));
+            var evt = new Event(eventId, "Название", DateTime.UtcNow.AddMinutes(-10), DateTime.UtcNow.AddMinutes(-5), 5, 4);
 
 
             var rejectedBooking = new Booking(
@@ -290,7 +305,8 @@ namespace EventManagement.Tests
                 .Setup(x => x.Reject(bookingId))
                 .Returns(rejectedBooking);
 
-            var bookingService = new BookingService(_repositoryBookingMock.Object, _repositoryEventMock.Object, _loggerMock.Object);
+
+            var bookingService = Sut();
 
             // Act
             var result = await bookingService.ProcessPendingBookingAsync(bookingId, TestContext.Current.CancellationToken);
@@ -321,7 +337,7 @@ namespace EventManagement.Tests
                 DateTime.UtcNow,
                 null);
 
-            var evt = new Event(eventId, "Название", DateTime.UtcNow.AddHours(1), DateTime.UtcNow.AddHours(2));
+            var evt = new Event(eventId, "Название", DateTime.UtcNow.AddHours(1), DateTime.UtcNow.AddHours(2), 5, 5);
 
 
             var confirmedBooking = new Booking(
@@ -342,11 +358,11 @@ namespace EventManagement.Tests
             _repositoryBookingMock
                 .Setup(x => x.Confirm(bookingId))
                 .Returns(confirmedBooking);
-            
-            var bookingService = new BookingService(_repositoryBookingMock.Object, _repositoryEventMock.Object, _loggerMock.Object);
+
+            var bookingService = Sut();
 
             // Act
-            var result = await bookingService.ProcessPendingBookingAsync(bookingId,TestContext.Current.CancellationToken);
+            var result = await bookingService.ProcessPendingBookingAsync(bookingId, TestContext.Current.CancellationToken);
 
             // Assert
             Assert.Equal(BookingStatus.Confirmed, result.Status);
@@ -374,7 +390,7 @@ namespace EventManagement.Tests
                 DateTime.UtcNow,
                 null);
 
-            var evt = new Event(eventId, "Название", DateTime.UtcNow.AddHours(1), DateTime.UtcNow.AddHours(2));
+            var evt = new Event(eventId, "Название", DateTime.UtcNow.AddHours(1), DateTime.UtcNow.AddHours(2), 5, 5);
 
 
             _repositoryBookingMock
@@ -388,12 +404,116 @@ namespace EventManagement.Tests
             _repositoryBookingMock
                 .Setup(x => x.Confirm(bookingId))
                 .Returns((Booking?)null);
-            var bookingService = new BookingService(_repositoryBookingMock.Object, _repositoryEventMock.Object, _loggerMock.Object);
+            var bookingService = Sut();
 
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(
                 () => bookingService.ProcessPendingBookingAsync(bookingId, TestContext.Current.CancellationToken));
+        }
+
+
+        [Fact]
+        public async Task CreateBookingAsync_WhenSeatsAvailable_DecreasesAvailableSeatsByOne()
+        {
+            // Arrange
+            var evt = new Event(
+                Guid.NewGuid(), "Концерт",
+                DateTime.UtcNow.AddDays(1),
+                DateTime.UtcNow.AddDays(2),
+                totalSeats: 5,
+                availableSeats: 5);
+
+            _repositoryEventMock.Setup(x => x.GetById(evt.Id)).Returns(evt);
+
+            var bookingService = Sut();
+            // Act
+            var dto = await bookingService.CreateBookingAsync(evt.Id, TestContext.Current.CancellationToken);
+
+            // Assert
+            Assert.Equal(4, evt.AvailableSeats);
+            _repositoryEventMock.Verify(x => x.Update(evt), Times.Once);
+            _repositoryBookingMock.Verify(x => x.Create(It.IsAny<Booking>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateBookingAsync_AvailableSeats_CreatesBookingSuccessfully()
+        {
+            // Arrange
+            var evt = new Event(
+                Guid.NewGuid(), "Концерт",
+                DateTime.UtcNow.AddDays(1),
+                DateTime.UtcNow.AddDays(2),
+                totalSeats: 5,
+                availableSeats: 5);
+
+            _repositoryEventMock.Setup(x => x.GetById(evt.Id)).Returns(evt);
+
+            var bookingService = Sut();
+            // Act
+            var dto = await bookingService.CreateBookingAsync(evt.Id, TestContext.Current.CancellationToken);
+
+            // Assert
+            Assert.Equal(4, evt.AvailableSeats);
+            _repositoryEventMock.Verify(x => x.Update(It.Is<Event>(e => e.AvailableSeats == 4)), Times.Once);
+            _repositoryBookingMock.Verify(x => x.Create(It.IsAny<Booking>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateBookingAsync_NoAvailableSeats_ShouldThrowEventNoAvailableSeatsException()
+        {
+            //Arrange
+
+            var evt = new Event(
+             Guid.NewGuid(), "Концерт",
+             DateTime.UtcNow.AddDays(1),
+             DateTime.UtcNow.AddDays(2),
+             totalSeats: 5,
+             availableSeats: 0);
+
+            _repositoryEventMock.Setup(x => x.GetById(evt.Id)).Returns(evt);
+            var bookingService = Sut();
+
+            //Act && Assert
+            await Assert.ThrowsAsync<EventNoAvailableSeatsException>(() => bookingService.CreateBookingAsync(evt.Id, TestContext.Current.CancellationToken));
+
+        }
+
+        [Fact]
+        public async Task ProcessPendingBookingAsync_WhenEventPassed_RejectsBookingAndReleasesSeat()
+        {
+            //Arrange
+
+            var evt = new Event(
+             Guid.NewGuid(), "Концерт",
+             DateTime.UtcNow.AddDays(-2),
+             DateTime.UtcNow.AddDays(-1.5),
+             totalSeats: 5,
+             availableSeats: 1);
+
+            var bng = new Booking(Guid.NewGuid(), BookingStatus.Pending, evt.Id, DateTime.UtcNow);
+
+            _repositoryEventMock.Setup(x => x.GetById(evt.Id)).Returns(evt);
+            _repositoryBookingMock.Setup(x => x.GetById(bng.Id)).Returns(bng);
+            _repositoryBookingMock.Setup(x => x.Reject(bng.Id)).Returns(() =>
+            {
+                bng.Reject(); 
+                return new Booking(bng.Id, bng.Status, bng.EventId, bng.CreatedAt, bng.ProcessedAt);
+            });
+
+            var bookingService = Sut();
+
+
+            //Act
+            _ = await bookingService.ProcessPendingBookingAsync(bng.Id, TestContext.Current.CancellationToken);
+
+            // Assert
+            Assert.Equal(2, evt.AvailableSeats);
+            _repositoryEventMock.Verify(x => x.Update(It.Is<Event>(e => e.AvailableSeats == 2)), Times.Once);
+            _repositoryBookingMock.Verify(x => x.Reject(It.IsAny<Guid>()), Times.Once);
+
+
+
         }
 
     }

@@ -15,8 +15,10 @@ namespace EventManagement.Models
     /// <param name="Title"></param>
     /// <param name="StartAt"></param>
     /// <param name="EndAt"></param>
+    /// <param name="AvailableSeats"></param>
+    /// <param name="TotalSeats"></param>
     /// <param name="Description"></param>
-    public record EventDTO(Guid Id, string Title, DateTime StartAt, DateTime EndAt, string? Description = null)
+    public record EventDTO(Guid Id, string Title, DateTime StartAt, DateTime EndAt, int AvailableSeats, int TotalSeats, string? Description = null)
     {
         /// <summary>
         /// Получение модели представления из доменной модели
@@ -25,7 +27,7 @@ namespace EventManagement.Models
         /// <returns></returns>
         public static EventDTO GetModel(Event e)
         {
-            return new EventDTO(e.Id, e.Title, e.StartAt, e.EndAt, e.Description);
+            return new EventDTO(e.Id, e.Title, e.StartAt, e.EndAt, e.AvailableSeats, e.TotalSeats, e.Description);
         }
     }
     /// <summary>
@@ -34,8 +36,9 @@ namespace EventManagement.Models
     /// <param name="Title"></param>
     /// <param name="StartAt"></param>
     /// <param name="EndAt"></param>
+    ///  <param name="TotalSeats"></param>
     /// <param name="Description"></param>
-    public record CreateUpdateEventDTO(string Title, DateTime StartAt, DateTime EndAt, string? Description = null);
+    public record CreateUpdateEventDTO(string Title, DateTime StartAt, DateTime EndAt, int TotalSeats, string? Description = null);
     /// <summary>
     /// Правила валидации
     /// </summary>
@@ -53,10 +56,11 @@ namespace EventManagement.Models
             RuleFor(x => x.StartAt)
                 .NotEmpty()
                .WithMessage("Не указана дата начала мероприятия");
+            RuleFor(x => x.TotalSeats).Must(x => x > 0).WithMessage("Количество мест для бронирования должно быть положительным");
             RuleFor(x => x.EndAt)
                .NotEmpty()
                .WithMessage("Не указана дата окончания мероприятия");
-            RuleFor(x => x.EndAt).GreaterThan(x => x.StartAt).WithMessage((x) => $"Дата окончания мероприятия {x.EndAt} должна быть больше даты начала мероприяти {x.StartAt}");
+            RuleFor(x => x.EndAt).GreaterThan(x => x.StartAt).WithMessage((x) => $"Дата окончания мероприятия {x.EndAt} должна быть больше даты начала мероприятия {x.StartAt}");
         }
 
     }
