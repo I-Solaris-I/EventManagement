@@ -19,7 +19,9 @@ namespace EventManagement.Services
 
         private IRepository<Event> _repository;
         private IValidator<EventFilterDTO> _validatorEF;
-        private IValidator<CreateUpdateEventDTO> _validatorCUE;
+        private IValidator<CreateEventDTO> _validatorCE;
+        private IValidator<UpdateEventDTO> _validatorUE;
+
         private readonly ILogger<EventService> _logger;
 
         /// <summary>
@@ -31,11 +33,14 @@ namespace EventManagement.Services
         /// <param name="validatorEF">Валидатор фильтра выдачи мероприятий</param>
         public EventService(IRepository<Event> repository,
             ILogger<EventService> logger,
-            IValidator<CreateUpdateEventDTO> validatorCUE,
-            IValidator<EventFilterDTO> validatorEF)
+            IValidator<CreateEventDTO> validatorCE,
+            IValidator<UpdateEventDTO> validatorUE,
+            IValidator<EventFilterDTO> validatorEF,
         {
             _repository = repository;
-            _validatorCUE = validatorCUE;
+            _validatorCE = validatorCE;
+            _validatorUE = validatorUE;
+
             _validatorEF = validatorEF;
             _logger = logger;
         }
@@ -49,7 +54,7 @@ namespace EventManagement.Services
         {
             if (model == null) throw new ArgumentNullException(nameof(model));
             _logger.LogInformation($"Вызван метод {nameof(CreateEvent)}");
-            var result = _validatorCUE.Validate(model);
+            var result = _validatorCE.Validate(model);
             if (!result.IsValid) throw new ValidationException(result.Errors);
             var newEvent = new Event(model.Title, model.StartAt, model.EndAt, model.TotalSeats, model.Description);
             _repository.Create(newEvent);
@@ -63,13 +68,13 @@ namespace EventManagement.Services
         /// <param name="model">Модель обновления</param>
         /// <exception cref="EventNotFoundedException"></exception>
         /// <exception cref="ValidationException"></exception>
-        public void UpdateEvent(Guid id, CreateUpdateEventDTO model)
+        public void UpdateEvent(Guid id, UpdateEventDTO model)
         {
             _logger.LogInformation($"Вызван метод {nameof(UpdateEvent)}");
 
             if (model == null) throw new ArgumentNullException(nameof(model));
 
-            var result = _validatorCUE.Validate(model);
+            var result = _validatorUE.Validate(model);
             if (!result.IsValid) throw new ValidationException(result.Errors);
 
             var evt = _repository.GetById(id);

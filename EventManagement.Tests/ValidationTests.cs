@@ -9,27 +9,29 @@ namespace EventManagement.Tests
     {
         EventFilterDTOValidation validatorEF;
 
-        CreateUpdateEventDTOValidation validatorCUE;
+        CreateEventDTOValidation validatorCE;
+        UpdateEventDTOValidation validatorUE;
 
         public ValidatorTests()
         {
             validatorEF = new();
-            validatorCUE = new();
+            validatorCE = new();
+            validatorUE = new();
 
         }
 
         [Fact]
-        [Trait("Category", nameof(CreateUpdateEventDTOValidation))]
+        [Trait("Category", nameof(UpdateEventDTOValidation))]
 
-        public void CreateUpdateEventDTO_Title_EmtyTitle_ShouldHaveValidationError()
+        public void UpdateEventDTO_Title_EmtyTitle_ShouldHaveValidationError()
         {
             //Arrange
             var title = string.Empty;
             var startAt = DateTime.Parse("2026-09-09");
             var endAt = DateTime.Parse("2025-09-10");
-            var model = new CreateUpdateEventDTO(title, startAt, endAt, 10);
+            var model = new UpdateEventDTO(title, startAt, endAt);
             //Act
-            var result = validatorCUE.TestValidate(model);
+            var result = validatorUE.TestValidate(model);
             //Assert
             result.ShouldHaveValidationErrorFor(a => a.Title);
         }
@@ -38,63 +40,63 @@ namespace EventManagement.Tests
         [InlineData(-100)]
         [InlineData(-1)]
         [InlineData(0)]
-        [Trait("Category", nameof(CreateUpdateEventDTOValidation))]
+        [Trait("Category", nameof(CreateEventDTOValidation))]
 
-        public void CreateUpdateEventDTO_TotalSeats_LessThanOne_ShouldHaveValidationError(int totalSeats)
+        public void UpdateEventDTO_TotalSeats_LessThanOne_ShouldHaveValidationError(int totalSeats)
         {
             //Arrange
             var title = "Название";
             var startAt = DateTime.UtcNow;
             var endAt = DateTime.UtcNow.AddHours(1);
-            var model = new CreateUpdateEventDTO(title, startAt, endAt, totalSeats);
+            var model = new CreateEventDTO(title, startAt, endAt, totalSeats);
             //Act
-            var result = validatorCUE.TestValidate(model);
+            var result = validatorCE.TestValidate(model);
             //Assert
             result.ShouldHaveValidationErrorFor(a => a.TotalSeats);
         }
 
 
         [Fact]
-        [Trait("Category", nameof(CreateUpdateEventDTOValidation))]
-        public void CreateUpdateEventDTO_EndAt_EarlierThanStartAt_ShouldHaveValidationError()
+        [Trait("Category", nameof(UpdateEventDTO))]
+        public void CreateEventDTO_EndAt_EarlierThanStartAt_ShouldHaveValidationError()
         {
 
             //Arrange
             var title = "Новое мероприятие";
             var startAt = DateTime.Parse("2026-09-09");
             var endAt = DateTime.Parse("2025-03-05");
-            var model = new CreateUpdateEventDTO(title, startAt, endAt,10);
+            var model = new UpdateEventDTO(title, startAt, endAt);
             //Act
-            var result = validatorCUE.TestValidate(model);
+            var result = validatorUE.TestValidate(model);
             //Assert
             result.ShouldHaveValidationErrorFor(a => a.EndAt);
         }
 
         [Fact]
-        [Trait("Category", nameof(CreateUpdateEventDTOValidation))]
+        [Trait("Category", nameof(CreateEventDTOValidation))]
 
-        public void CreateUpdateEventDTO_StartAt_MinValue_ShouldHaveValidationError()
+        public void CreateEventDTO_StartAt_MinValue_ShouldHaveValidationError()
         {
 
             //Arrange
             var title = "Новое мероприятие";
             var startAt = DateTime.MinValue;
             var endAt = DateTime.Parse("2026-03-05");
-            var model = new CreateUpdateEventDTO(title, startAt, endAt,10);
+            var model = new CreateEventDTO(title, startAt, endAt,10);
             //Act
-            var result = validatorCUE.TestValidate(model);
+            var result = validatorCE.TestValidate(model);
             //Assert
             result.ShouldHaveValidationErrorFor(a => a.StartAt).WithErrorMessage("Не указана дата начала мероприятия");
         }
         [Fact]
-        [Trait("Category", nameof(CreateUpdateEventDTOValidation))]
+        [Trait("Category", nameof(CreateEventDTOValidation))]
 
         public void CreateUpdateEventDTO_CorrectValues_ShouldNotHaveAnyValidationError()
         {
             //Arrange
-            var model = new CreateUpdateEventDTO("Новое мероприятие", DateTime.Parse("2025-03-04"), DateTime.Parse("2025-03-05"),10);
+            var model = new CreateEventDTO("Новое мероприятие", DateTime.Parse("2025-03-04"), DateTime.Parse("2025-03-05"),10);
             //Act
-            var result = validatorCUE.TestValidate(model);
+            var result = validatorCE.TestValidate(model);
             //Assert
             result.ShouldNotHaveAnyValidationErrors();
         }
@@ -102,7 +104,7 @@ namespace EventManagement.Tests
         [InlineData(-100)]
         [InlineData(-50)]
         [InlineData(0)]
-        [Trait("Category", nameof(CreateUpdateEventDTOValidation))]
+        [Trait("Category", nameof(CreateEventDTOValidation))]
         public void EventFilterDTO_Page_InvalidValues_ShouldHaveValidationError(int page)
         {
             //Arrange

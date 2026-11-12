@@ -7,7 +7,24 @@ using System.Threading.Tasks;
 
 namespace EventManagement.Models
 {
-
+    /// <summary>
+    /// Базовый интерфейс DTO
+    /// </summary>
+    public interface IEventDTO
+    {
+        /// <summary>
+        /// Наименование мероприятия
+        /// </summary>
+        string Title { get; }
+        /// <summary>
+        /// Дата начала мероприятия
+        /// </summary>
+        DateTime StartAt { get; }
+        /// <summary>
+        /// Дата окончания мероприятия
+        /// </summary>
+        DateTime EndAt { get; }
+    }
     /// <summary>
     /// DTO - модель для выдачи клиенту
     /// </summary>
@@ -18,7 +35,7 @@ namespace EventManagement.Models
     /// <param name="AvailableSeats"></param>
     /// <param name="TotalSeats"></param>
     /// <param name="Description"></param>
-    public record EventDTO(Guid Id, string Title, DateTime StartAt, DateTime EndAt, int AvailableSeats, int TotalSeats, string? Description = null)
+    public record EventDTO(Guid Id, string Title, DateTime StartAt, DateTime EndAt, int AvailableSeats, int TotalSeats, string? Description = null) : IEventDTO
     {
         /// <summary>
         /// Получение модели представления из доменной модели
@@ -38,16 +55,25 @@ namespace EventManagement.Models
     /// <param name="EndAt"></param>
     ///  <param name="TotalSeats"></param>
     /// <param name="Description"></param>
-    public record CreateUpdateEventDTO(string Title, DateTime StartAt, DateTime EndAt, int TotalSeats, string? Description = null);
+    public record CreateEventDTO(string Title, DateTime StartAt, DateTime EndAt, int TotalSeats, string? Description = null) : IEventDTO;
     /// <summary>
-    /// Правила валидации
+    /// DTO модель для обновляемого мероприятия
     /// </summary>
-    public class CreateUpdateEventDTOValidation : AbstractValidator<CreateUpdateEventDTO>
+    /// <param name="Title"></param>
+    /// <param name="StartAt"></param>
+    /// <param name="EndAt"></param>
+    /// <param name="Description"></param>
+    public record UpdateEventDTO(string Title, DateTime StartAt, DateTime EndAt, string? Description = null) : IEventDTO;
+
+    /// <summary>
+    /// Базовый класс валидации
+    /// </summary>
+    public abstract class EventBaseValidation<T> : AbstractValidator<T> where T : IEventDTO
     {
         /// <summary>
-        /// Конмтруктор
+        /// Конструктор
         /// </summary>
-        public CreateUpdateEventDTOValidation()
+        public EventBaseValidation()
         {
             RuleFor(x => x.Title)
                 .NotEmpty()
@@ -56,13 +82,38 @@ namespace EventManagement.Models
             RuleFor(x => x.StartAt)
                 .NotEmpty()
                .WithMessage("Не указана дата начала мероприятия");
-            RuleFor(x => x.TotalSeats).Must(x => x > 0).WithMessage("Количество мест для бронирования должно быть положительным");
             RuleFor(x => x.EndAt)
                .NotEmpty()
                .WithMessage("Не указана дата окончания мероприятия");
             RuleFor(x => x.EndAt).GreaterThan(x => x.StartAt).WithMessage((x) => $"Дата окончания мероприятия {x.EndAt} должна быть больше даты начала мероприятия {x.StartAt}");
         }
 
+    }
+    /// <summary>
+    /// Правила валидации
+    /// </summary>
+    public class CreateEventDTOValidation : EventBaseValidation<CreateEventDTO>
+    {
+        /// <summary>
+        /// Конструктор
+        /// </summary>
+        public CreateEventDTOValidation()
+        {
+            RuleFor(x => x.TotalSeats).Must(x => x > 0).WithMessage("Количество мест для бронирования должно быть положительным");
+        }
+
+    }
+    /// <summary>
+    /// Правила валидации
+    /// </summary>
+    public class UpdateEventDTOValidation : EventBaseValidation<UpdateEventDTO>
+    {
+        /// <summary>
+        /// Конструктор
+        /// </summary>
+        public UpdateEventDTOValidation()
+        {
+        }
     }
     /// <summary>
     /// Модель фильтрации мероприятий
