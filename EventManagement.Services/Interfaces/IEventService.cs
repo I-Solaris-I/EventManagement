@@ -16,19 +16,21 @@ namespace EventManagement.Services.Interfaces
         /// Создание мероприятия
         /// </summary>
         /// <param name="model"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        Guid CreateEvent(CreateUpdateEventDTO model);
+        Task<Guid> CreateEventAsync(CreateEventDTO model, CancellationToken ct = default);
         /// <summary>
         /// Обновление мероприятия
         /// </summary>
         /// <param name="id"></param>
         /// <param name="model"></param>
-        void UpdateEvent(Guid id, CreateUpdateEventDTO model);
+        /// <param name="ct"></param>
+        Task UpdateEventAsync(Guid id, UpdateEventDTO model, CancellationToken ct = default);
         /// <summary>
         /// Получение всех мероприятий
         /// </summary>
         /// <returns></returns>
-        List<EventDTO> GetAllEvents();
+        Task<List<EventDTO>> GetAllEventsAsync(CancellationToken ct = default);
         /// <summary>
         /// Получить эвенты с фильрацией и пагинацией
         /// </summary>
@@ -37,19 +39,22 @@ namespace EventManagement.Services.Interfaces
         /// <param name="to"></param>
         /// <param name="page"></param>
         /// <param name="pageSize"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        PaginatedResultDto<EventDTO> GetFilteredEvents(EventFilterDTO model);
+        Task<PaginatedResultDto<EventDTO>> GetFilteredEventsAsync(EventFilterDTO model, CancellationToken ct = default);
         /// <summary>
         /// Получение мероприятия по id
         /// </summary>
         /// <param name="id"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        EventDTO GetEventById(Guid id);
+        Task<EventDTO> GetEventByIdAsync(Guid id, CancellationToken ct = default);
         /// <summary>
         /// Удаление мероприятия
         /// </summary>
         /// <param name="id"></param>
-        void RemoveEvent(Guid id);
+        /// <param name="ct"></param>
+        Task RemoveEventAsync(Guid id, CancellationToken ct = default);
 
     }
 

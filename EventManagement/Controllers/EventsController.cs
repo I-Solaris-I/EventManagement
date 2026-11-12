@@ -37,24 +37,26 @@ namespace EventManagement.Controllers
         /// <param name="to">Дата по для фильтрации</param>
         /// <param name="page">Номер страницы для выдачи данных</param>
         /// <param name="pageSize">Кол-во элементов на странице</param>
+        /// <param name="ct">Токен отмены</param>
         /// <returns></returns>
         /// <response code="200">Возвращается список мероприятий</response>
 
         [HttpGet]
-        public ActionResult<PaginatedResultDto<EventDTO>> GetEvents([FromQuery] string? title, [FromQuery] DateTime? from, [FromQuery] DateTime? to, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<PaginatedResultDto<EventDTO>>> GetEvents(CancellationToken ct, [FromQuery] string? title, [FromQuery] DateTime? from, [FromQuery] DateTime? to, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            return _eventService.GetFilteredEvents(new EventFilterDTO(title, from, to, page, pageSize));
+            return await _eventService.GetFilteredEventsAsync(new EventFilterDTO(title, from, to, page, pageSize), ct);
         }
         /// <summary>
         /// Получить мероприятие по идентификатору
         /// </summary>
         /// <param name="id">Идентификатор мероприятия</param>
+        /// <param name="ct">Токен отмены</param>
         /// <returns></returns>
         /// <response code="200">Мероприятие получено</response>
         [HttpGet("{id}")]
-        public ActionResult<EventDTO> GetEventById([FromRoute][Required] Guid id)
+        public async Task<ActionResult<EventDTO>> GetEventById([FromRoute][Required] Guid id, CancellationToken ct)
         {
-            return Ok(_eventService.GetEventById(id));
+            return Ok(await _eventService.GetEventByIdAsync(id, ct));
 
         }
         /// <summary>
@@ -71,8 +73,8 @@ namespace EventManagement.Controllers
         [HttpPost("{id}/book")]
         public async Task<ActionResult<BookingDTO>> CreateBooking([FromRoute] Guid id, CancellationToken ct)
         {
-            var booking = await _bookingService.CreateBookingAsync(id,ct);
-            return AcceptedAtAction(nameof(BookingsController.GetBooking), nameof(BookingsController).Replace("controller", "", StringComparison.InvariantCultureIgnoreCase),new {id=booking.Id}, booking);
+            var booking = await _bookingService.CreateBookingAsync(id, ct);
+            return AcceptedAtAction(nameof(BookingsController.GetBooking), nameof(BookingsController).Replace("controller", "", StringComparison.InvariantCultureIgnoreCase), new { id = booking.Id }, booking);
         }
 
 
@@ -81,39 +83,41 @@ namespace EventManagement.Controllers
         /// </summary>
         /// <param name="model">Модель данных мероприятия для изменения</param>
         /// <param name="id">Идентификатор мероприятия</param>
+        /// <param name="ct">Токен отмены</param>
         /// <returns></returns>
         /// <response code="204">Мероприятие обновлено</response>
         /// <response code="404">Мероприятие не найдено</response>
         [HttpPut("{id}")]
-        public ActionResult UpdateEvent([FromBody][Required] CreateUpdateEventDTO model, [FromRoute][Required] Guid id)
+        public async Task<ActionResult> UpdateEvent([FromBody][Required] UpdateEventDTO model, [FromRoute][Required] Guid id, CancellationToken ct)
         {
-            _eventService.UpdateEvent(id, model);
+            await _eventService.UpdateEventAsync(id, model, ct);
             return NoContent();
         }
         /// <summary>
         /// Создать мероприятие 
         /// </summary>
         /// <param name="model">Модель данных мероприятия для создания</param>
+        /// <param name="ct">Токен отмены</param>
         /// <returns></returns>
         /// <response code="201">Мероприятие создано</response>
         [HttpPost]
-        public ActionResult<Guid> AddEvent([FromBody][Required] CreateUpdateEventDTO model)
+        public async Task<ActionResult<Guid>> AddEvent([FromBody][Required] CreateEventDTO model, CancellationToken ct)
         {
-            var eventId = _eventService.CreateEvent(model);
+            var eventId = await _eventService.CreateEventAsync(model, ct);
             return CreatedAtAction(nameof(GetEventById), new { id = eventId }, eventId);
         }
         /// <summary>
         /// Удалить мероприятие 
         /// </summary>
         /// <param name="id">Идентификатор мероприятия</param>
+        /// <param name="ct">Токен отмены</param>
         /// <returns></returns>
         /// <response code="404">Мероприятие не найдено</response>
         /// <response code="204">Мероприятие удалено</response>
-
         [HttpDelete("{id}")]
-        public ActionResult RemoveEvent([FromRoute][Required] Guid id)
+        public async Task<ActionResult> RemoveEvent([FromRoute][Required] Guid id, CancellationToken ct)
         {
-            _eventService.RemoveEvent(id);
+            await _eventService.RemoveEventAsync(id, ct);
             return NoContent();
         }
 
