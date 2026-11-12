@@ -1,8 +1,6 @@
-﻿using EventManagement.Context.DataAccess;
-using EventManagement.Context.Interfaces;
+﻿using EventManagement.Context.Interfaces;
 using EventManagement.Models;
 using EventManagement.Services.Interfaces;
-using Microsoft.EntityFrameworkCore;
 
 namespace EventManagement.Services
 {
@@ -61,11 +59,11 @@ namespace EventManagement.Services
 
             await using var scope = _scopeFactory.CreateAsyncScope();
 
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var bookingRepository = scope.ServiceProvider.GetRequiredService<IAsyncBookingRepository>();
             var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
 
 
-            var pendingBookings = await db.Bookings.Where(a => a.Status == BookingStatus.Pending).Select(a => a.Id).ToArrayAsync(stoppingToken);
+            var pendingBookings = (await bookingRepository.GetPendingAsync(stoppingToken)).Select(a => a.Id).ToArray();
             var tasks = pendingBookings.Select(async (bId) =>
             {
                 try

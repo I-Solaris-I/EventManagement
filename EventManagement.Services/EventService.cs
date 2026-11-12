@@ -1,9 +1,7 @@
-﻿using EventManagement.Context.DataAccess;
-using EventManagement.Context.Interfaces;
+﻿using EventManagement.Context.Interfaces;
 using EventManagement.Models;
 using EventManagement.Services.Interfaces;
 using FluentValidation;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -19,7 +17,8 @@ namespace EventManagement.Services
     public class EventService : IEventService
     {
 
-        private readonly AppDbContext _db;
+        private IAsyncEventRepository _repository;
+        private IUnitOfWork _uow;
 
         private IValidator<EventFilterDTO> _validatorEF;
         private IValidator<CreateEventDTO> _validatorCE;
@@ -34,19 +33,20 @@ namespace EventManagement.Services
         /// <param name="logger">Логгер</param>
         /// <param name="validatorCUE">Валидатор DTO создания/обновления мероприятия</param>
         /// <param name="validatorEF">Валидатор фильтра выдачи мероприятий</param>
-        public EventService(
+        public EventService(IAsyncEventRepository repository,
             ILogger<EventService> logger,
             IValidator<CreateEventDTO> validatorCE,
             IValidator<UpdateEventDTO> validatorUE,
             IValidator<EventFilterDTO> validatorEF,
-            AppDbContext db)
+            IUnitOfWork uow)
         {
-            _db = db;
+            _repository = repository;
             _validatorCE = validatorCE;
             _validatorUE = validatorUE;
 
             _validatorEF = validatorEF;
             _logger = logger;
+            _uow = uow;
         }
         /// <summary>
         /// Создание мероприятия
@@ -61,8 +61,8 @@ namespace EventManagement.Services
             var result = _validatorCE.Validate(model);
             if (!result.IsValid) throw new ValidationException(result.Errors);
             var newEvent = new Event(model.Title, model.StartAt, model.EndAt, model.TotalSeats, model.Description);
-            _db.Add(newEvent);
-            await _db.SaveChangesAsync(ct);
+            _repository.Add(newEvent);
+            await _uow.SaveChangesAsync(ct);
             _logger.LogInformation($"Мероприятия c {newEvent.Id} создано");
             return newEvent.Id;
         }
@@ -82,12 +82,12 @@ namespace EventManagement.Services
             var result = _validatorUE.Validate(model);
             if (!result.IsValid) throw new ValidationException(result.Errors);
 
-            var evt = await _db.Events.FirstOrDefaultAsync(a => a.Id == id, ct);
+            var evt = await _repository.GetByIdAsync(id);
             if (evt == null) throw new EventNotFoundedException(id);
 
             evt.UpdateEvent(model.Title, model.StartAt, model.EndAt, model.Description);
-            // _repository.Update(evt);
-            await _db.SaveChangesAsync(ct);
+           // _repository.Update(evt);
+            await _uow.SaveChangesAsync(ct);
             _logger.LogInformation($"Мероприятия c {id} обновлено");
         }
         /// <summary>
@@ -97,7 +97,7 @@ namespace EventManagement.Services
         public async Task<List<EventDTO>> GetAllEventsAsync(CancellationToken ct = default)
         {
             _logger.LogInformation($"Вызван метод {nameof(GetAllEventsAsync)}");
-            var events = (await _db.Events.ToListAsync(ct)).Select(EventDTO.GetModel).ToList();
+            var events = (await _repository.GetAllAsync()).Select(EventDTO.GetModel).ToList();
             _logger.LogInformation($"Мероприятия выгружены");
             return events;
         }
@@ -119,55 +119,14 @@ namespace EventManagement.Services
             var result = _validatorEF.Validate(model);
             if (!result.IsValid) throw new ValidationException(result.Errors);
 
-            DateTime _from = DateTime.MinValue;
-            string _title = string.Empty;
-            DateTime _to = DateTime.MinValue;
-            bool hasTitleFiltration = false, hasFromFiltration = false, hasToFiltration = false;
 
-            if (!string.IsNullOrEmpty(model.Title))
-            {
-                _title = model.Title;
-                hasTitleFiltration = true;
-            }
-            if (model.From.HasValue)
-            {
-                _from = model.From!.Value.ToUniversalTime();
-                hasFromFiltration = true;
-            }
-            if (model.To.HasValue)
-            {
-                _to = model.To!.Value.ToUniversalTime();
-                hasToFiltration = true;
-            }
-
-            _logger.LogInformation($"Вызван метод {nameof(GetFilteredEventsAsync)}");
-            var query = _db.Events.AsQueryable();
-
-            if (hasFromFiltration)
-            {
-                query = query.Where(a => a.StartAt >= _from);
-            }
-            if (hasToFiltration)
-            {
-                query = query.Where(a => a.EndAt <= _to);
-            }
-            if (hasTitleFiltration)
-            {
-                query = query.Where(a => a.Title.Contains(_title, StringComparison.InvariantCultureIgnoreCase));
-            }
-
-            var total = query.Count();
-
-            query = query.Skip((model.Page - 1) * model.PageSize).Take(model.PageSize);
-
-            var events = query.Select(EventDTO.GetModel).ToList();
-
+            var result1 = await _repository.GetAllPaginatedAsync(model, ct);
             _logger.LogInformation($"Мероприятия выгружены");
             return new PaginatedResultDto<EventDTO>()
             {
-                Items = events,
-                PageSize = model.PageSize,
-                Page = model.Page,
+                Items = result1.Items.Select(EventDTO.GetModel).ToList(),
+                PageSize = result1.PageSize,
+                Page = result1.Page,
                 Total = result1.Total,
             };
         }
@@ -183,7 +142,7 @@ namespace EventManagement.Services
         {
             _logger.LogInformation($"Вызван метод {nameof(GetEventByIdAsync)}");
 
-            var evt = await _db.Events.FirstOrDefaultAsync(a => a.Id == id, ct);
+            var evt = await _repository.GetByIdAsync(id);
             if (evt == null) throw new EventNotFoundedException(id);
             _logger.LogInformation($"Мероприятие с {evt.Id} получено");
             return EventDTO.GetModel(evt);
@@ -196,8 +155,8 @@ namespace EventManagement.Services
         public async Task RemoveEventAsync(Guid id, CancellationToken ct = default)
         {
             _logger.LogInformation($"Вызван метод {nameof(RemoveEventAsync)}");
-            if (!await _db.Events.AnyAsync(a => a.Id == id, ct)) throw new EventNotFoundedException(id);
-            _db.Remove(id);
+            if (!await _repository.IsExistAsync(id, ct)) throw new EventNotFoundedException(id);
+            _repository.Remove(id);
             _logger.LogInformation($"Мероприятие с {id} удалено");
 
         }
