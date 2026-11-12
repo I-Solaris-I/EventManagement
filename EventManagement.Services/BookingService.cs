@@ -1,8 +1,6 @@
-﻿using EventManagement.Context.DataAccess;
-using EventManagement.Context.Interfaces;
+﻿using EventManagement.Context.Interfaces;
 using EventManagement.Models;
 using EventManagement.Services.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace EventManagement.Services
@@ -10,18 +8,22 @@ namespace EventManagement.Services
     public class BookingService : IBookingService
     {
         private readonly static SemaphoreSlim _bookingSemaphore = new(1, 1);
+        private readonly IAsyncBookingRepository _repositoryBooking;
+        private readonly IAsyncEventRepository _repositoryEvent;
+        private readonly IUnitOfWork _uow;
         private readonly ILogger<BookingService> _logger;
-        private readonly AppDbContext _db;
         /// <summary>
         /// Сервис создания брони мероприятий
         /// </summary>
         /// <param name="repositoryBooking">репозиторий бронирований</param>
         /// <param name="repositoryEvent">репозиторий мероприятий</param>
         /// <param name="logger">логгер</param>
-        public BookingService(AppDbContext db, ILogger<BookingService> logger)
+        public BookingService(IAsyncBookingRepository repositoryBooking, IAsyncEventRepository repositoryEvent, IUnitOfWork uow, ILogger<BookingService> logger)
         {
             _logger = logger;
-            _db = db;
+            _repositoryBooking = repositoryBooking;
+            _repositoryEvent = repositoryEvent;
+            _uow = uow;
         }
         /// <summary>
         /// Создание новой брони мероприятия
@@ -42,15 +44,15 @@ namespace EventManagement.Services
                 await _bookingSemaphore.WaitAsync(ct);
                 try
                 {
-                    var evt = await _db.Events.FirstOrDefaultAsync(a => a.Id == eventId, ct);
+                    var evt = await _repositoryEvent.GetByIdAsync(eventId, ct);
                     if (evt == null) throw new EventNotFoundedException(eventId);
                     if (evt.StartAt <= DateTime.UtcNow) throw new BookingBusinessException("Невозможно создать бронь для мероприятия, которое началось");
                     if (!evt.TryReserveSeats())
                         throw new EventNoAvailableSeatsException(eventId);
                     //_repositoryEvent.Update(evt);
                     booking = new Booking(eventId);
-                    _db.Add(booking);
-                    await _db.SaveChangesAsync(ct);
+                    _repositoryBooking.Add(booking);
+                    await _uow.SaveChangesAsync(ct);
                 }
                 finally
                 {
@@ -83,7 +85,7 @@ namespace EventManagement.Services
 
                 //Впоследствии репозиторий может (и должен) быть дописан с мспользованием асинхронных методов
 
-                var booking = await _db.Bookings.FirstOrDefaultAsync(a => a.Id == bookingId, ct);
+                var booking = await _repositoryBooking.GetByIdAsync(bookingId, ct);
 
                 if (booking == null) throw new BookingNotFoundedException(bookingId);
 
@@ -119,13 +121,13 @@ namespace EventManagement.Services
             try
             {
 
-                booking = await _db.Bookings.FirstOrDefaultAsync(a => a.Id == bookingId, ct);
+                booking = await _repositoryBooking.GetByIdAsync(bookingId, ct);
                 if (booking == null) throw new BookingNotFoundedException(bookingId);
 
 
                 if (booking.Status != BookingStatus.Pending) throw new BookingBusinessException($"Метод обрабатывает только бронирования в статусе {BookingStatus.Pending.ToString()}");
 
-                evt = await _db.Events.FirstOrDefaultAsync(a => a.Id == booking.EventId, ct);
+                evt = await _repositoryEvent.GetByIdAsync(booking.EventId);
                 if (evt == null)
                 {
                     booking.Reject();
@@ -135,12 +137,11 @@ namespace EventManagement.Services
                 {
                     booking.Reject();
                     evt.ReleaseSeats();
-                    // _repositoryEvent.Update(evt);
                     _logger.LogWarning("Мероприятие {EventId} уже началось, бронь {bookingId} отменена", booking?.EventId, booking?.Id);
 
                 }
                 else booking.Confirm();
-                await _db.SaveChangesAsync(ct);
+                await _uow.SaveChangesAsync(ct);
 
                 return BookingDTO.GetModel(booking!);
 
@@ -163,9 +164,8 @@ namespace EventManagement.Services
                 if (evt != null)
                 {
                     evt.ReleaseSeats();
-                    //  _repositoryEvent.Update(evt);
                 }
-                await _db.SaveChangesAsync(ct);
+                await _uow.SaveChangesAsync(ct);
                 throw;
             }
             finally

@@ -16,12 +16,12 @@ namespace EventManagement.Tests
 {
     public class BookingServiceConcurrencyUnitTest : IDisposable
     {
+        private readonly IAsyncEventRepository _eventRepository;
         private readonly IEventService _eventService;
         private readonly IBookingService _bookingService;
 
         private readonly IServiceProvider _serviceProvider;
         private readonly IServiceScope _scope;
-        private readonly AppDbContext _db;
 
         public BookingServiceConcurrencyUnitTest()
         {
@@ -32,8 +32,11 @@ namespace EventManagement.Tests
                 options.UseInMemoryDatabase(dbName));
             services.AddScoped<IEventService, EventService>();
             services.AddScoped<IBookingService, BookingService>();
-            services.AddScoped<ILogger<BookingService>>( _ => new Mock<ILogger<BookingService>>().Object);
-            services.AddScoped<ILogger<EventService>>( _ => new Mock<ILogger<EventService>>().Object);
+            services.AddScoped<IAsyncBookingRepository, BookingRepository>();
+            services.AddScoped<IAsyncEventRepository, EventRepository>();
+            services.AddScoped<IUnitOfWork>(services => services.GetRequiredService<AppDbContext>());
+            services.AddScoped<ILogger<BookingService>>(_ => new Mock<ILogger<BookingService>>().Object);
+            services.AddScoped<ILogger<EventService>>(_ => new Mock<ILogger<EventService>>().Object);
             services.AddScoped<IValidator<CreateEventDTO>, CreateEventDTOValidation>();
             services.AddScoped<IValidator<UpdateEventDTO>, UpdateEventDTOValidation>();
             services.AddScoped<IValidator<EventFilterDTO>, EventFilterDTOValidation>();
@@ -41,18 +44,18 @@ namespace EventManagement.Tests
             _serviceProvider = services.BuildServiceProvider();
             _scope = _serviceProvider.CreateScope();
             _eventService = _scope.ServiceProvider.GetRequiredService<IEventService>();
-            _db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
             _bookingService = _scope.ServiceProvider.GetRequiredService<IBookingService>();
 
+            _eventRepository = _scope.ServiceProvider.GetRequiredService<IAsyncEventRepository>();
         }
 
-
+        CancellationToken ct => TestContext.Current.CancellationToken;
         [Fact]
         public async Task CreateBookingAsync_TwentyConcurrentCallsForTenSeats_TenSucceedAndTenFailWithNoSeats()
         {
-            var guid =await _eventService.CreateEventAsync(new CreateEventDTO( "Новое мероприятие", DateTime.UtcNow.AddDays(5), DateTime.UtcNow.AddDays(6), 10), TestContext.Current.CancellationToken);
- 
- 
+            var guid = await _eventService.CreateEventAsync(new CreateEventDTO("Новое мероприятие", DateTime.UtcNow.AddDays(5), DateTime.UtcNow.AddDays(6), 10), TestContext.Current.CancellationToken);
+
+
 
             var tasks = Enumerable.Range(1, 20).Select(elem => Task.Run(() => _bookingService.CreateBookingAsync(guid, default), default)).ToList();
             Task all = Task.WhenAll(tasks);
@@ -65,7 +68,7 @@ namespace EventManagement.Tests
             var faultedQty = tasks.Count(a => a.IsFaulted);
             var exseptions = tasks.Where(a => a.IsFaulted).Select(a => a.Exception!.InnerException).ToList();
             Assert.Equal(10, cmlQty);
-            Assert.Equal(0, (await _db.Events.FirstAsync(a=>a.Id==guid, TestContext.Current.CancellationToken))!.AvailableSeats);
+            Assert.Equal(0, (await _eventRepository.GetByIdAsync(guid, ct))!.AvailableSeats);
             Assert.Equal(tasks.Count, cmlQty + faultedQty);
             Assert.All(exseptions, ex => Assert.IsType<EventNoAvailableSeatsException>(ex));
         }
@@ -76,8 +79,8 @@ namespace EventManagement.Tests
 
             var guid = await _eventService.CreateEventAsync(new CreateEventDTO("Новое мероприятие", DateTime.UtcNow.AddDays(5), DateTime.UtcNow.AddDays(6), 10), TestContext.Current.CancellationToken);
 
- 
-            var tasks = Enumerable.Range(1, 10).Select(elem => Task.Run(() => _bookingService.CreateBookingAsync(guid, default), default)).ToList();
+
+            var tasks = Enumerable.Range(1, 10).Select(elem => Task.Run(() => _bookingService.CreateBookingAsync(guid, ct), ct)).ToList();
             Task all = Task.WhenAll(tasks);
             try
             {

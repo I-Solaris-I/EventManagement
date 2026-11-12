@@ -6,6 +6,11 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="InMemoryBooking.cs" />
+    <Compile Remove="InMemoryEvents.cs" />
+    <Compile Remove="Interfaces\IRepositoryOLD.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Bogus" Version="35.6.5" />

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventManagement.Context.DataAccess
 {
-    public sealed class AppDbContext : DbContext
+    public sealed class AppDbContext : DbContext, IUnitOfWork
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
         public DbSet<Event> Events => Set<Event>();
