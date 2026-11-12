@@ -1,43 +1,60 @@
 ﻿
 using EventManagement.Context;
+using EventManagement.Context.DataAccess;
 using EventManagement.Context.Interfaces;
 using EventManagement.Models;
 using EventManagement.Services;
+using EventManagement.Services.Interfaces;
+using FluentValidation;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 
 
 namespace EventManagement.Tests
 {
-    public class BookingServiceConcurrencyUnitTest
+    public class BookingServiceConcurrencyUnitTest : IDisposable
     {
+        private readonly IEventService _eventService;
+        private readonly IBookingService _bookingService;
 
-        private readonly IRepository<Event> _eventRepository;
-        private readonly IBookingRepository _bookingRepository;
-        private readonly Mock<ILogger<BookingService>> _loggerMock;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly IServiceScope _scope;
+        private readonly AppDbContext _db;
+
         public BookingServiceConcurrencyUnitTest()
         {
-            _eventRepository = new InMemoryEvents();
-            _bookingRepository = new InMemoryBooking(_eventRepository);
-            _loggerMock = new Mock<ILogger<BookingService>>();
+
+            var dbName = Guid.NewGuid().ToString();
+            var services = new ServiceCollection();
+            services.AddDbContext<AppDbContext>(options =>
+                options.UseInMemoryDatabase(dbName));
+            services.AddScoped<IEventService, EventService>();
+            services.AddScoped<IBookingService, BookingService>();
+            services.AddScoped<ILogger<BookingService>>( _ => new Mock<ILogger<BookingService>>().Object);
+            services.AddScoped<ILogger<EventService>>( _ => new Mock<ILogger<EventService>>().Object);
+            services.AddScoped<IValidator<CreateEventDTO>, CreateEventDTOValidation>();
+            services.AddScoped<IValidator<UpdateEventDTO>, UpdateEventDTOValidation>();
+            services.AddScoped<IValidator<EventFilterDTO>, EventFilterDTOValidation>();
+
+            _serviceProvider = services.BuildServiceProvider();
+            _scope = _serviceProvider.CreateScope();
+            _eventService = _scope.ServiceProvider.GetRequiredService<IEventService>();
+            _db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            _bookingService = _scope.ServiceProvider.GetRequiredService<IBookingService>();
+
         }
-        private BookingService Sut(IBookingRepository? bookingRepository = null, IRepository<Event>? eventRepository = null, ILogger<BookingService>? logger = null)
-        {
-            return new BookingService(
-                bookingRepository ?? _bookingRepository,
-                eventRepository ?? _eventRepository,
-                logger ?? _loggerMock.Object);
-        }
+
 
         [Fact]
         public async Task CreateBookingAsync_TwentyConcurrentCallsForTenSeats_TenSucceedAndTenFailWithNoSeats()
         {
-            var evt = new Event(Guid.NewGuid(), "Новое мероприятие", DateTime.UtcNow.AddDays(5), DateTime.UtcNow.AddDays(6), 10, 10);
+            var guid =await _eventService.CreateEventAsync(new CreateEventDTO( "Новое мероприятие", DateTime.UtcNow.AddDays(5), DateTime.UtcNow.AddDays(6), 10), TestContext.Current.CancellationToken);
+ 
+ 
 
-            _eventRepository.Create(evt);
-            var br = Sut();
-
-            var tasks = Enumerable.Range(1, 20).Select(elem => Task.Run(() => br.CreateBookingAsync(evt.Id, default), default)).ToList();
+            var tasks = Enumerable.Range(1, 20).Select(elem => Task.Run(() => _bookingService.CreateBookingAsync(guid, default), default)).ToList();
             Task all = Task.WhenAll(tasks);
             try
             {
@@ -48,7 +65,7 @@ namespace EventManagement.Tests
             var faultedQty = tasks.Count(a => a.IsFaulted);
             var exseptions = tasks.Where(a => a.IsFaulted).Select(a => a.Exception!.InnerException).ToList();
             Assert.Equal(10, cmlQty);
-            Assert.Equal(0, _eventRepository.GetById(evt.Id)!.AvailableSeats);
+            Assert.Equal(0, (await _db.Events.FirstAsync(a=>a.Id==guid, TestContext.Current.CancellationToken))!.AvailableSeats);
             Assert.Equal(tasks.Count, cmlQty + faultedQty);
             Assert.All(exseptions, ex => Assert.IsType<EventNoAvailableSeatsException>(ex));
         }
@@ -57,24 +74,25 @@ namespace EventManagement.Tests
         public async Task CreateBookingAsync_WhenTenConcurrentRequests_CreatesTenUniqueBookings()
         {
 
-            var evt = new Event(Guid.NewGuid(), "Новое мероприятие", DateTime.UtcNow.AddDays(5), DateTime.UtcNow.AddDays(6), 10, 10);
+            var guid = await _eventService.CreateEventAsync(new CreateEventDTO("Новое мероприятие", DateTime.UtcNow.AddDays(5), DateTime.UtcNow.AddDays(6), 10), TestContext.Current.CancellationToken);
 
-            _eventRepository.Create(evt);
-            var br = Sut();
-
-            var tasks = Enumerable.Range(1, 10).Select(elem => Task.Run(() => br.CreateBookingAsync(evt.Id, default), default)).ToList();
+ 
+            var tasks = Enumerable.Range(1, 10).Select(elem => Task.Run(() => _bookingService.CreateBookingAsync(guid, default), default)).ToList();
             Task all = Task.WhenAll(tasks);
             try
             {
                 await all;
             }
-            catch{ }
+            catch { }
             var cmlQty = tasks.Count(a => a.IsCompletedSuccessfully);
             var ids = tasks.Select(a => a.Result.Id).Distinct().ToHashSet();
             Assert.Equal(10, cmlQty);
             Assert.Equal(10, ids.Count);
         }
 
-
+        public void Dispose()
+        {
+            _scope.Dispose();
+        }
     }
 }
