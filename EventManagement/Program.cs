@@ -1,4 +1,5 @@
 using EventManagement.Context;
+using EventManagement.Context.DataAccess;
 using EventManagement.Context.Interfaces;
 using EventManagement.Filters;
 using EventManagement.Middlewares;
@@ -6,6 +7,7 @@ using EventManagement.Models;
 using EventManagement.Services;
 using EventManagement.Services.Interfaces;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using System.Reflection;
 
@@ -42,14 +44,13 @@ builder.Services.AddControllers(options =>
     options.SuppressModelStateInvalidFilter = false;
 });
 
-
-builder.Services.AddSingleton<IRepository<Event>, InMemoryEvents>();
-builder.Services.AddTransient<IValidator<CreateUpdateEventDTO>, CreateUpdateEventDTOValidation>();
-builder.Services.AddTransient<IValidator<EventFilterDTO>, EventFilterDTOValidation>();
+builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<IValidator<CreateEventDTO>, CreateEventDTOValidation>();
+builder.Services.AddScoped<IValidator<UpdateEventDTO>, UpdateEventDTOValidation>();
+builder.Services.AddScoped<IValidator<EventFilterDTO>, EventFilterDTOValidation>();
 builder.Services.AddScoped<IEventService, EventService>();
 
 
-builder.Services.AddSingleton<IBookingRepository, InMemoryBooking>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddHostedService<BookingBackgroundService>();
 var app = builder.Build();
@@ -66,6 +67,13 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 app.UseRouting();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.EnsureCreated();
+}
+
 app.MapControllers();
 
 app.Run();
