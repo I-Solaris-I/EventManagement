@@ -45,12 +45,15 @@ builder.Services.AddControllers(options =>
 });
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<IUnitOfWork>(services => services.GetRequiredService<AppDbContext>());
+builder.Services.AddScoped<IAsyncEventRepository, EventRepository>();
 builder.Services.AddScoped<IValidator<CreateEventDTO>, CreateEventDTOValidation>();
 builder.Services.AddScoped<IValidator<UpdateEventDTO>, UpdateEventDTOValidation>();
 builder.Services.AddScoped<IValidator<EventFilterDTO>, EventFilterDTOValidation>();
 builder.Services.AddScoped<IEventService, EventService>();
 
 
+builder.Services.AddScoped<IAsyncBookingRepository, BookingRepository>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddHostedService<BookingBackgroundService>();
 var app = builder.Build();
