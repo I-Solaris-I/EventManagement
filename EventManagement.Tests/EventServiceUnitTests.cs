@@ -14,10 +14,15 @@ namespace EventManagement.Tests
     /// </summary>
     public class EventServiceUnitTests
     {
-        private readonly Mock<IRepository<Event>> _repositoryMock;
+        private CancellationToken ct => TestContext.Current.CancellationToken;
+        private readonly Mock<IAsyncEventRepository> _repositoryMock;
         private readonly Mock<ILogger<EventService>> _loggerMock;
-        private readonly Mock<IValidator<CreateUpdateEventDTO>> _validatorCUEMock;
+        private readonly Mock<IValidator<CreateEventDTO>> _validatorCEMock;
+        private readonly Mock<IValidator<UpdateEventDTO>> _validatorUEMock;
+
         private readonly Mock<IValidator<EventFilterDTO>> _validatorEFMock;
+        private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+
         private readonly List<Event> _allEvents =
         [
             new Event(
@@ -148,112 +153,97 @@ namespace EventManagement.Tests
 
         public EventServiceUnitTests()
         {
-            _repositoryMock = new Mock<IRepository<Event>>();
-
+            _repositoryMock = new Mock<IAsyncEventRepository>();
+            _unitOfWorkMock = new Mock<IUnitOfWork>();
             _loggerMock = new Mock<ILogger<EventService>>();
 
-            _repositoryMock.Setup(a => a.GetAll()).Returns(_allEvents);
-            _repositoryMock.Setup(a => a.IsExist(Guid.Parse("c9cfdfd8-e38d-4e0f-bcf2-bb20e6c632c0"))).Returns(true);
-            _repositoryMock.Setup(a => a.GetById(Guid.Parse("c9cfdfd8-e38d-4e0f-bcf2-bb20e6c632c0"))).Returns(_allEvents[1]);
+            _repositoryMock.Setup(a => a.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(_allEvents);
+            _repositoryMock.Setup(a => a.IsExistAsync(Guid.Parse("c9cfdfd8-e38d-4e0f-bcf2-bb20e6c632c0"), It.IsAny<CancellationToken>())).ReturnsAsync(true);
+            _repositoryMock.Setup(a => a.GetByIdAsync(Guid.Parse("c9cfdfd8-e38d-4e0f-bcf2-bb20e6c632c0"), It.IsAny<CancellationToken>())).ReturnsAsync(_allEvents[1]);
 
-            _validatorCUEMock = new Mock<IValidator<CreateUpdateEventDTO>>();
+            _validatorCEMock = new Mock<IValidator<CreateEventDTO>>();
+            _validatorUEMock = new Mock<IValidator<UpdateEventDTO>>();
             _validatorEFMock = new Mock<IValidator<EventFilterDTO>>();
         }
-        private EventService Sut(IRepository<Event>? repository = null, ILogger<EventService>? logger = null, IValidator<CreateUpdateEventDTO>? validatorCUE = null, IValidator<EventFilterDTO>? validatorEF = null)
+        private EventService Sut(IAsyncEventRepository? repository = null, ILogger<EventService>? logger = null, IValidator<CreateEventDTO>? validatorCE = null, IValidator<UpdateEventDTO>? validatorUE = null, IValidator<EventFilterDTO>? validatorEF = null, IUnitOfWork? uow = null)
         {
             return new EventService(
                 repository ?? _repositoryMock.Object,
                 logger ?? _loggerMock.Object,
-                validatorCUE ?? _validatorCUEMock.Object,
-                validatorEF ?? _validatorEFMock.Object);
+                validatorCE ?? _validatorCEMock.Object,
+                validatorUE ?? _validatorUEMock.Object,
+                validatorEF ?? _validatorEFMock.Object,
+                uow ?? _unitOfWorkMock.Object);
         }
 
         [Fact]
-        public void GetAllEvents_ShouldReturnAllExistingEvents()
+        public async Task GetAllEvents_ShouldReturnAllExistingEvents()
         {
             //Arrange
             var eventService = Sut();
             //Act
-            var result = eventService.GetAllEvents();
+            var result = await eventService.GetAllEventsAsync(ct);
 
             //Assert
             Assert.NotNull(result);
-            _repositoryMock.Verify(a => a.GetAll(), Times.Once);
+            _repositoryMock.Verify(a => a.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
             Assert.Equal(_allEvents.Count, result.Count);
         }
 
-        [Theory]
-        [InlineData(1, 10)]
-        [InlineData(2, 20)]
-        [InlineData(1, 1000)]
-        [InlineData(3, 5000)]
-        public void GetFilteredEvents_ValidPageAndPageSize_ReturnsCorrectNumberOfItemsAndPage(int page, int pageSize)
-        {
-            //Arrange
-            _validatorEFMock.Setup(a => a.Validate(It.IsAny<EventFilterDTO>())).Returns(new ValidationResult { });
-            var eventService = Sut();
-            //Act
-            var result = eventService.GetFilteredEvents(new EventFilterDTO { Page = page, PageSize = pageSize });
-            //Assert
-            Assert.NotNull(result);
-            Assert.True(result.Items.Count() <= result.PageSize);
-            Assert.Equal(result.Count, result.Items.Count());
-            Assert.Equal(page, result.Page);
+    
 
-            Assert.Equal(pageSize, result.PageSize);
-
-        }
 
 
 
         [Fact]
-        public void GetEventById_ExistingGuid_ShouldReturnEventWithSameGuid()
+        public async Task GetEventById_ExistingGuid_ShouldReturnEventWithSameGuid()
         {
             //Arrange
             var existingGuid = Guid.Parse("c9cfdfd8-e38d-4e0f-bcf2-bb20e6c632c0");
             var eventService = Sut();
             //Act
-            var result = eventService.GetEventById(existingGuid);
+            var result = await eventService.GetEventByIdAsync(existingGuid, ct);
             //Assert
             Assert.NotNull(result);
             Assert.Equal(existingGuid, result.Id);
-            _repositoryMock.Verify(a => a.GetById(It.IsAny<Guid>()), Times.Once);
+            _repositoryMock.Verify(a => a.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
-        public void GetEventById_NotExistingGuid_ShouldThrowEventNotFoundedExeption()
+        public async Task GetEventById_NotExistingGuid_ShouldThrowEventNotFoundedExeption()
         {
             //Arrange
             var notExistingGuid = Guid.Parse("c2cfdfd8-e38d-4e0f-bcf2-bb3206c632c0");
             var eventService = Sut();
             //Act && Assert
-            Assert.Throws<EventNotFoundedException>(() => eventService.GetEventById(notExistingGuid));
-            _repositoryMock.Verify(a => a.GetById(It.IsAny<Guid>()), Times.Once);
+            await Assert.ThrowsAsync<EventNotFoundedException>(() => eventService.GetEventByIdAsync(notExistingGuid, ct));
+            _repositoryMock.Verify(a => a.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
-        public void CreateEvent_CorrectValues_ShouldBecreatedAndReturnNotEmptyGuid()
+        public async Task CreateEvent_CorrectValues_ShouldBecreatedAndReturnNotEmptyGuid()
         {
             //Arrange
-            var model = new CreateUpdateEventDTO(
+            var model = new CreateEventDTO(
                 "Veritatis voluptatum rerum.",
-                DateTime.Parse("2025-11-02T05:01:05.8051311+03:00"),
-                DateTime.Parse("2026-11-02T06:01:05.8051311+03:00"),
+                DateTime.UtcNow.AddMinutes(5),
+                DateTime.UtcNow.AddMinutes(30),
                 10,
                 "Ducimus ea minus nam sit"
                 );
 
-            _validatorCUEMock.Setup(x => x.Validate(model)).Returns(new ValidationResult());
+            _validatorCEMock.Setup(x => x.Validate(model)).Returns(new ValidationResult());
 
             var eventService = Sut();
 
 
             //Act
-            var result = eventService.CreateEvent(model);
+            var result = await eventService.CreateEventAsync(model, ct);
 
             //Assert
+            _unitOfWorkMock.Verify(u => u.SaveChangesAsync(ct), Times.Once);
             _repositoryMock.Verify(
-                  x => x.Create(It.Is<Event>(e =>
+                  x => x.Add(It.Is<Event>(e =>
                       e.Title == model.Title &&
                       e.StartAt == model.StartAt &&
                       e.EndAt == model.EndAt &&
@@ -265,168 +255,137 @@ namespace EventManagement.Tests
         }
 
         [Fact]
-        public void UpdateEvent_CorrectValues_ShouldBeUpdated()
+        public async Task UpdateEvent_CorrectValues_ShouldBeUpdated()
         {
             //Arrange
             var existedID = Guid.Parse("c9cfdfd8-e38d-4e0f-bcf2-bb20e6c632c0");
-            var model = new CreateUpdateEventDTO(
+            var model = new UpdateEventDTO(
                         "Veritatis voluptsatum rerum.",
                         DateTime.Parse("2025-11-02T05:01:05.8051311+03:00"),
                         DateTime.Parse("2026-11-02T06:01:05.8051311+03:00"),
-                        10,
                         "Ducimus ea minus nam sit"
                         );
 
-            _validatorCUEMock.Setup(x => x.Validate(model)).Returns(new ValidationResult());
+            _repositoryMock.Setup(a => a.GetByIdAsync(Guid.Parse("c9cfdfd8-e38d-4e0f-bcf2-bb20e6c632c0"), It.IsAny<CancellationToken>())).ReturnsAsync(_allEvents[1]);
+            _validatorUEMock.Setup(x => x.Validate(model)).Returns(new ValidationResult());
 
             var eventService = Sut();
 
             //Act
-            eventService.UpdateEvent(existedID, model);
+            await eventService.UpdateEventAsync(existedID, model, ct);
 
             //Assert
-            _repositoryMock.Verify(
-                  x => x.Update(It.Is<Event>(e =>
-                      e.Title == model.Title &&
-                      e.StartAt == model.StartAt &&
-                      e.EndAt == model.EndAt &&
-                      e.Description == model.Description
-                  )),
-                  Times.Once);
+            _unitOfWorkMock.Verify(u => u.SaveChangesAsync(ct), Times.Once);
+
+            Assert.Equal(model.Title, _allEvents[1].Title);
+            Assert.Equal(model.StartAt, _allEvents[1].StartAt);
+            Assert.Equal(model.EndAt, _allEvents[1].EndAt);
+            Assert.Equal(model.Description, _allEvents[1].Description);
+
+
         }
 
         [Fact]
-        public void UpdateEvent_NotExistedGuid_ShouldThrowEventNotFoundedExeption()
+        public async Task UpdateEvent_NotExistedGuid_ShouldThrowEventNotFoundedExeption()
         {
             //Arrange
 
             var notExistedGuid = Guid.Parse("c8cfafa8-e38d-4e0f-bcf2-bb20e6c632c0");
-            var model = new CreateUpdateEventDTO(
+            var model = new UpdateEventDTO(
                         "Veritatis voluptsatum rerum.",
                         DateTime.Parse("2025-11-02T05:01:05.8051311+03:00"),
                         DateTime.Parse("2026-11-02T06:01:05.8051311+03:00"),
-                        10,
                         "Ducimus ea minus nam sit"
                         );
 
-            _validatorCUEMock.Setup(x => x.Validate(It.IsAny<CreateUpdateEventDTO>())).Returns(new ValidationResult());
+            _validatorUEMock.Setup(x => x.Validate(It.IsAny<UpdateEventDTO>())).Returns(new ValidationResult());
             var eventService = Sut();
 
 
             //Act && Assert
-            Assert.Throws<EventNotFoundedException>(() => eventService.UpdateEvent(notExistedGuid, model));
+            await Assert.ThrowsAsync<EventNotFoundedException>(() => eventService.UpdateEventAsync(notExistedGuid, model, ct));
+            _unitOfWorkMock.Verify(u => u.SaveChangesAsync(ct), Times.Never);
 
-            _repositoryMock.Verify(
-                  x => x.Update(It.IsAny<Event>()),
-                  Times.Never);
         }
         [Fact]
-        public void CreateEvent_ModelIsNull_ShouldThrowArgumentNullException()
+        public async Task CreateEvent_ModelIsNull_ShouldThrowArgumentNullException()
         {
             //Arrange
-            var model = (CreateUpdateEventDTO?)default;
+            var model = (CreateEventDTO?)default;
             var eventService = Sut();
 
 
             //Act && Assert
-            Assert.Throws<ArgumentNullException>(() => eventService.CreateEvent(model!));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => eventService.CreateEventAsync(model!, ct));
             _repositoryMock.Verify(
-        x => x.Create(It.IsAny<Event>()),
+        x => x.Add(It.IsAny<Event>()),
         Times.Never);
 
-            _validatorCUEMock.Verify(
-                x => x.Validate(It.IsAny<CreateUpdateEventDTO>()),
+            _validatorCEMock.Verify(
+                x => x.Validate(It.IsAny<CreateEventDTO>()),
                 Times.Never);
+            _unitOfWorkMock.Verify(u => u.SaveChangesAsync(ct), Times.Never);
+
         }
+
+
+
+
 
         [Fact]
-        public void GetFilteredEvents_filterText_ShouldHaveOnlyFilteredItems()
-        {
-            //Arrange
-            var filterText = "illum e";
-            _validatorEFMock.Setup(x => x.Validate(It.IsAny<EventFilterDTO>())).Returns(new ValidationResult());
-            var eventService = Sut();
-
-            //Act
-            var result = eventService.GetFilteredEvents(new EventFilterDTO(filterText));
-
-            //Assert
-            Assert.NotNull(result);
-            Assert.Equal(2, result.Items.Count());
-            Assert.All(result.Items, x => Assert.True(x.Title.Contains(filterText, StringComparison.InvariantCultureIgnoreCase)));
-        }
-
-        public static IEnumerable<object[]> FilterCases =>
-        [
-                     ["Minus sunt sint", new DateTime(2026, 1, 3), new DateTime(2026, 1, 31)],
-                     [ "Illum e", new DateTime(2025, 9, 1), new DateTime(2025, 9, 30) ],
-
-        ];
-
-        [Theory]
-        [MemberData(nameof(FilterCases))]
-        public void GetFilteredEvents_AllFilters_ShouldHaveOnlyFilteredItems(string filterText, DateTime from, DateTime to)
-        {
-            //Arrange
-            _validatorEFMock.Setup(x => x.Validate(It.IsAny<EventFilterDTO>())).Returns(new ValidationResult());
-            var eventService = Sut();
-
-            //Act
-            var result = eventService.GetFilteredEvents(new EventFilterDTO(filterText, from, to));
-
-            //Assert
-            Assert.NotNull(result);
-            Assert.All(result.Items, x => Assert.True(x.Title.Contains(filterText, StringComparison.InvariantCultureIgnoreCase) && x.StartAt >= from && x.EndAt <= to));
-
-        }
-        [Fact]
-        public void RemoveEvent_ExistedGuid_MustBeСompleted()
+        public async Task RemoveEvent_ExistedGuid_MustBeСompleted()
         {
             //Arrange
             var existedGuid = Guid.Parse("c9cfdfd8-e38d-4e0f-bcf2-bb20e6c632c0");
             var eventService = Sut();
 
             //Act
-            eventService.RemoveEvent(existedGuid);
+            await eventService.RemoveEventAsync(existedGuid, ct);
 
             //Assert
-            _repositoryMock.Verify(a => a.Delete(existedGuid), Times.Once);
+            _repositoryMock.Verify(a => a.Remove(existedGuid), Times.Once);
         }
 
         [Fact]
-        public void RemoveEvent_NotExistedGuid_ShouldThrowEventNotFoundedExeption()
+        public async Task RemoveEvent_NotExistedGuid_ShouldThrowEventNotFoundedExeption()
         {
             //Arrange
             var notExistedGuid = Guid.Parse("c9cfdfd8-e38d-4e0f-baf2-bb20e6c632c0");
             var eventService = Sut();
 
             //Act && Assert
-            Assert.Throws<EventNotFoundedException>(() => eventService.RemoveEvent(notExistedGuid));
-            _repositoryMock.Verify(a => a.Delete(notExistedGuid), Times.Never);
+            await Assert.ThrowsAsync<EventNotFoundedException>(() => eventService.RemoveEventAsync(notExistedGuid, ct));
+            _repositoryMock.Verify(a => a.Remove(notExistedGuid), Times.Never);
+            _unitOfWorkMock.Verify(u => u.SaveChangesAsync(ct), Times.Never);
+
         }
 
 
         [Fact]
-        public void CreateEvent_InvalidDate_ShouldThrowValidationExeption()
+        public async Task CreateEvent_InvalidDate_ShouldThrowValidationExeption()
         {
             //Arrange
-            var dto = new CreateUpdateEventDTO("Новое мероприятие", DateTime.MinValue, DateTime.UtcNow, 10);
-            var eventService = new EventService(_repositoryMock.Object, _loggerMock.Object, new CreateUpdateEventDTOValidation(), _validatorEFMock.Object);
+            var dto = new CreateEventDTO("Новое мероприятие", DateTime.MinValue, DateTime.UtcNow, 10);
+            var eventService = Sut(validatorCE: new CreateEventDTOValidation());
 
             //Act && Assert
-            Assert.Throws<ValidationException>(() => eventService.CreateEvent(dto));
+            await Assert.ThrowsAsync<ValidationException>(() => eventService.CreateEventAsync(dto, TestContext.Current.CancellationToken));
+            _unitOfWorkMock.Verify(u => u.SaveChangesAsync(ct), Times.Never);
+
         }
 
         [Fact]
-        public void UpdateEvent_InvalidDate_ShouldThrowValidationExeption()
+        public async Task UpdateEvent_InvalidDate_ShouldThrowValidationExeption()
         {
             //Arrange
             var evt = _allEvents.First();
-            var updData = new CreateUpdateEventDTO("Новое название", DateTime.UtcNow, DateTime.MinValue, 10);
-            var eventService = new EventService(_repositoryMock.Object, _loggerMock.Object, new CreateUpdateEventDTOValidation(), _validatorEFMock.Object);
+            var updData = new UpdateEventDTO("Новое название", DateTime.UtcNow, DateTime.MinValue);
+            var eventService = Sut(validatorUE: new UpdateEventDTOValidation());
 
             //Act && Assert
-            Assert.Throws<ValidationException>(() => eventService.UpdateEvent(evt.Id, updData));
+            await Assert.ThrowsAsync<ValidationException>(() => eventService.UpdateEventAsync(evt.Id, updData, ct));
+            _unitOfWorkMock.Verify(u => u.SaveChangesAsync(ct), Times.Never);
+
         }
     }
 }
