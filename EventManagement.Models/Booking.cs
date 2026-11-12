@@ -97,6 +97,15 @@ namespace EventManagement.Models
         /// Дата и время обработки
         /// </summary>
         public DateTime? ProcessedAt { get; private set; }
+        /// <summary>
+        /// Ссылка на мероприятие, для которого создана бронь
+        /// </summary>
+        public virtual Event Event { get; private set; } = null!;
+
+        private Booking()
+        {
+
+        }
 
         /// <summary>
         /// Подтвержение брони

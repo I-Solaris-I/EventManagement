@@ -95,7 +95,7 @@ namespace EventManagement.Models
         /// <summary>
         /// Наименование мероприятия
         /// </summary>
-        public string Title { get; private set; }
+        public string Title { get; private set; } = null!;
         /// <summary>
         /// Описание мероприятия
         /// </summary>
@@ -116,7 +116,17 @@ namespace EventManagement.Models
         /// Текущее количество свободных мест на событии
         /// </summary>
         public int AvailableSeats { get; private set; }
+        /// <summary>
+        /// Список бронирований мероприятий 
+        /// </summary>
+        public virtual List<Booking>? Bookings { get; private set; }
 
+        /// <summary>
+        /// Приватный конструктор без параметров
+        /// </summary>
+        private Event()
+        {
+        }
 
         /// <summary>
         /// Контрутор Мероприятия
