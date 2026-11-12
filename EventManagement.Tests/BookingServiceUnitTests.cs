@@ -197,6 +197,7 @@ namespace EventManagement.Tests
             // Act & Assert
             await Assert.ThrowsAsync<BookingNotFoundedException>(
                 () => bookingService.ProcessPendingBookingAsync(bookingId, ct));
+            _unitOfWorkMock.Verify(a=>a.SaveChangesAsync(It.IsAny<CancellationToken>()),Times.Once());
         }
 
         [Fact]
