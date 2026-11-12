@@ -3,6 +3,7 @@
 ## Технологии
 - C#
 - ASP.NET Core
+- Entity Framework Core
 ## Целевая платформа проекта
 - net 9.0
 ## Библиотеки
@@ -10,12 +11,17 @@
 - Bogus - генератор данных
 - xunit.v3 - тесты логики
 - Moq - библиотека для создания имитаций (mock-объектов)
+- Microsoft.EntityFrameworkCore - ORM
+- Microsoft.EntityFrameworkCore - PostgreSQL/Npgsql провайдером для EntityFrameworkCore
+## СУБД
+- PostgreSQL 16
+
 ## Структура проекта
 - EventManagement - содержит ASP NET WebApi приложение
 - EventManagement.Models - содержит доменные модели приложения/DTO
 - EventManagement.Services - содержит сервисы бизнес-логики приложения
 - EventManagement.Context - содержит классы, связанные с хранением данных
-- EventManagement.Tests - содержит методы тестирования логики
+- EventManagement.Tests - содержит методы unit-тестирования бизнес логики
 ## Сборка
 Для сборки использовать команду: 
 ```bash
@@ -125,6 +131,9 @@ dotnet run --project EventManagement/EventManagement.csproj -lp http
 
 **Внимание! Для ислючительных ситуаций, которые могут возникнуть при выполнении запросов API, используется формат Problem Details (RFC 7807):** [Ссылка на документ](https://datatracker.ietf.org/doc/html/rfc7807)
 
+
+## Работа с БД
+ASP.NET приложение взаимодействует с PostgreSQL базой данных, для взаимодействия используется ORM  EntityFrameworkCore с соответствующим провайдером. Взаимодействие с БД осуществляется посредством подхода CodeFirst, когда в коде сначала определяются модели данных, которые c помощью EntityFrameworkCore переводятся в реальные табличные представления.
 ## Тестирование
 
 Для запуска тестов использовать команду
