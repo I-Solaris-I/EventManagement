@@ -82,7 +82,7 @@ namespace EventManagement.Services
             var result = _validatorUE.Validate(model);
             if (!result.IsValid) throw new ValidationException(result.Errors);
 
-            var evt = await _repository.GetByIdAsync(id);
+            var evt = await _repository.GetByIdAsync(id, ct);
             if (evt == null) throw new EventNotFoundedException(id);
 
             evt.UpdateEvent(model.Title, model.StartAt, model.EndAt, model.Description);
@@ -97,7 +97,7 @@ namespace EventManagement.Services
         public async Task<List<EventDTO>> GetAllEventsAsync(CancellationToken ct = default)
         {
             _logger.LogInformation($"Вызван метод {nameof(GetAllEventsAsync)}");
-            var events = (await _repository.GetAllAsync()).Select(EventDTO.GetModel).ToList();
+            var events = (await _repository.GetAllAsync(ct)).Select(EventDTO.GetModel).ToList();
             _logger.LogInformation($"Мероприятия выгружены");
             return events;
         }
@@ -142,7 +142,7 @@ namespace EventManagement.Services
         {
             _logger.LogInformation($"Вызван метод {nameof(GetEventByIdAsync)}");
 
-            var evt = await _repository.GetByIdAsync(id);
+            var evt = await _repository.GetByIdAsync(id, ct);
             if (evt == null) throw new EventNotFoundedException(id);
             _logger.LogInformation($"Мероприятие с {evt.Id} получено");
             return EventDTO.GetModel(evt);

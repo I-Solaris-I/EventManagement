@@ -127,7 +127,7 @@ namespace EventManagement.Services
 
                 if (booking.Status != BookingStatus.Pending) throw new BookingBusinessException($"Метод обрабатывает только бронирования в статусе {BookingStatus.Pending.ToString()}");
 
-                evt = await _repositoryEvent.GetByIdAsync(booking.EventId);
+                evt = await _repositoryEvent.GetByIdAsync(booking.EventId, ct);
                 if (evt == null)
                 {
                     booking.Reject();
