@@ -86,7 +86,7 @@ namespace EventManagement.Services
             if (evt == null) throw new EventNotFoundedException(id);
 
             evt.UpdateEvent(model.Title, model.StartAt, model.EndAt, model.Description);
-           // _repository.Update(evt);
+            // _repository.Update(evt);
             await _uow.SaveChangesAsync(ct);
             _logger.LogInformation($"Мероприятия c {id} обновлено");
         }
@@ -157,6 +157,7 @@ namespace EventManagement.Services
             _logger.LogInformation($"Вызван метод {nameof(RemoveEventAsync)}");
             if (!await _repository.IsExistAsync(id, ct)) throw new EventNotFoundedException(id);
             _repository.Remove(id);
+            await _uow.SaveChangesAsync(ct);
             _logger.LogInformation($"Мероприятие с {id} удалено");
 
         }
