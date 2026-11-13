@@ -149,7 +149,7 @@ namespace EventManagement.IntegrationTests
 
             //Assert
             await using var verifyContext = await _fixture.CreateContextAsync();
-            var evt = await verifyContext.Events.FindAsync([booking.Id], ct);
+            var evt = await verifyContext.Bookings.FindAsync([booking.Id], ct);
             Assert.Null(evt);
         }
 
